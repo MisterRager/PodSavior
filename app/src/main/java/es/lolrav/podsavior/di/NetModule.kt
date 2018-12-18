@@ -6,6 +6,7 @@ import dagger.Provides
 import es.lolrav.podsavior.net.itunes.ITUNES_BASE_URI
 import es.lolrav.podsavior.net.itunes.ITunesService
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Named
 
@@ -20,6 +21,7 @@ class NetModule {
             Retrofit.Builder()
                     .baseUrl(ITUNES_BASE_URI)
                     .addConverterFactory(MoshiConverterFactory.create(moshi))
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .build()
 
     @Provides
