@@ -7,7 +7,10 @@ import androidx.room.PrimaryKey
 data class Series(
         @PrimaryKey
         val uid: String,
-        val name: String
+        val name: String,
+        val feedUri: String,
+        val description: String? = null,
+        val isSubscribed: Boolean = false
 ) {
         companion object {
                 const val TABLE_NAME = "series"

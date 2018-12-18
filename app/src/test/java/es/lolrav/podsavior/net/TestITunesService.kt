@@ -23,8 +23,19 @@ class TestITunesService {
                 .test()
                 .also {
                     it.awaitTerminalEvent()
-                    it.assertValue {
-                        it.isNotEmpty()
+                    it.assertValueCount(1)
+                    it.assertValue { results ->
+                        results.count > 0
+                    }
+                    it.assertValue { results ->
+                        results.results.any { result ->
+                            result.artistName == "Crooked Media"
+                        }
+                    }
+                    it.assertValue { results ->
+                        results.results.any { result ->
+                            result.name == "Pod Save America"
+                        }
                     }
                 }
                 .dispose()

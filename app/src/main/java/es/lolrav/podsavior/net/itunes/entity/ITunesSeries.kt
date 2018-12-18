@@ -2,9 +2,7 @@ package es.lolrav.podsavior.net.itunes.entity
 
 import com.squareup.moshi.Json
 
-data class ITunesSeries
-@JvmOverloads
-constructor(
+data class ITunesSeries(
         @Json(name = "trackId")
         val id: String,
         @Json(name = "trackName")
@@ -14,8 +12,4 @@ constructor(
         @Json(name = "artistName")
         val artistName: String,
         @Json(name = "feedUrl")
-        val rssFeedUrl: String,
-
-        @Transient
-        val isSubscribed: Boolean = false
-)
+        val rssFeedUrl: String)
