@@ -6,5 +6,4 @@ class ITunesSearchResults(
         @Json(name = "resultCount")
         val count: Int,
         @Json(name = "results")
-        val results: List<ITunesSeries>
-)
+        val results: List<ITunesSeries>)
