@@ -11,5 +11,5 @@ constructor() {
             Series(
                     uid = "iTunes:${result.id}",
                     name = result.name,
-                    feedUri = result.rssFeedUrl)
+                    feedUri = result.rssFeedUrl!!)
 }

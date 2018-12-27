@@ -1,11 +1,13 @@
 package es.lolrav.podsavior.di
 
 import dagger.Component
+import dagger.android.AndroidInjectionModule
 import dagger.android.AndroidInjector
 import es.lolrav.podsavior.PodApplication
 
 @Component(modules = [
-    ActivityBuilderModule::class,
+    //ActivityBuilderModule::class,
+    AndroidInjectionModule::class,
     RoomModule::class,
     AppModule::class
 ])

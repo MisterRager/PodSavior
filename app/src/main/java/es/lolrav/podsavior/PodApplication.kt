@@ -1,14 +1,14 @@
 package es.lolrav.podsavior
 
 import android.app.Activity
-import android.app.Application
+import androidx.multidex.MultiDexApplication
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasActivityInjector
 import es.lolrav.podsavior.di.DaggerAppComponent
 import javax.inject.Inject
 
-class PodApplication: Application(), HasActivityInjector {
+class PodApplication: MultiDexApplication(), HasActivityInjector {
     @Inject
     lateinit var activityInjector: DispatchingAndroidInjector<Activity>
 

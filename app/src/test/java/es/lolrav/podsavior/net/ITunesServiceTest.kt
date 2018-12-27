@@ -5,7 +5,7 @@ import es.lolrav.podsavior.net.itunes.ITunesService
 import org.junit.Before
 import org.junit.Test
 
-class TestITunesService {
+class ITunesServiceTest {
     lateinit var iTunes: ITunesService
 
     @Before
@@ -28,7 +28,7 @@ class TestITunesService {
                         results.count > 0
                     }
                     it.assertValue { results ->
-                        results.results.any { result ->
+                         results.results.any { result ->
                             result.artistName == "Crooked Media"
                         }
                     }

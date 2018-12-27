@@ -1,6 +1,7 @@
 package es.lolrav.podsavior.di
 
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import es.lolrav.podsavior.net.itunes.ITUNES_BASE_URI
@@ -13,7 +14,9 @@ import javax.inject.Named
 @Module
 class NetModule {
     @Provides
-    fun providesMoshi(): Moshi = Moshi.Builder().build()
+    fun providesMoshi(): Moshi = Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
 
     @Provides
     @Named("itunes-retrofit")
