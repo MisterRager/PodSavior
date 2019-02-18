@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import dagger.Module
 import dagger.Provides
+import dagger.Reusable
 import es.lolrav.podsavior.database.PodDatabase
 import es.lolrav.podsavior.database.dao.EpisodeDao
 import es.lolrav.podsavior.database.dao.SeriesDao
@@ -11,19 +12,20 @@ import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
-class RoomModule {
-    @Provides @Named("database-name")
+object RoomModule {
+    @Named("database-name")
+    @[Provides JvmStatic Reusable]
     fun providesDatabaseName(): String = "pods-and-ends"
 
-    @[Provides Singleton]
+    @[Provides JvmStatic Singleton]
     fun providePodDatabase(
-            context: Context,
+            @Named(APP_CONTEXT) context: Context,
             @Named("database-name") dbName: String
     ): PodDatabase = Room.databaseBuilder(context, PodDatabase::class.java, dbName).build()
 
-    @Provides
+    @[Provides JvmStatic Reusable]
     fun provideEpisodeDao(podDatabase: PodDatabase): EpisodeDao = podDatabase.episodeDao
 
-    @Provides
+    @[Provides JvmStatic Reusable]
     fun provideSeriesDao(podDatabase: PodDatabase): SeriesDao = podDatabase.seriesDao
 }

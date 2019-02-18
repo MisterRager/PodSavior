@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 class AddSeriesViewModel
 @Inject
-constructor(seriesSources: Set<ItemSource<Series>>) : ViewModel() {
+constructor(seriesSources: Set<@JvmSuppressWildcards ItemSource<@JvmSuppressWildcards Series>>) : ViewModel() {
     private val compositeSource: ItemSource<Series> =
             CompositeItemSource(*seriesSources.toTypedArray())
 

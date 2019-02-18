@@ -1,10 +1,16 @@
 package es.lolrav.podsavior.di
 
+import android.app.Application
 import android.content.Context
 import dagger.Module
-import es.lolrav.podsavior.PodApplication
+import dagger.Provides
+import dagger.Reusable
+import javax.inject.Named
 
+const val APP_CONTEXT = "application"
 @Module
-interface AppModule {
-    fun providesContext(app: PodApplication): Context = app
+object AppModule {
+    @Named(APP_CONTEXT)
+    @[JvmStatic Reusable Provides]
+    fun providesContext(app: Application): Context = app
 }

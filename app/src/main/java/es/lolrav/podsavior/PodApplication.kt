@@ -1,24 +1,14 @@
 package es.lolrav.podsavior
 
-import android.app.Activity
 import androidx.multidex.MultiDexApplication
-import dagger.android.AndroidInjector
-import dagger.android.DispatchingAndroidInjector
-import dagger.android.HasActivityInjector
+import es.lolrav.podsavior.di.AppComponent
 import es.lolrav.podsavior.di.DaggerAppComponent
-import javax.inject.Inject
+import es.lolrav.podsavior.di.has.HasAppComponent
 
-class PodApplication: MultiDexApplication(), HasActivityInjector {
-    @Inject
-    lateinit var activityInjector: DispatchingAndroidInjector<Activity>
-
-    override fun onCreate() {
-        super.onCreate()
+class PodApplication: MultiDexApplication(), HasAppComponent {
+    override val appComponent: AppComponent by lazy {
         DaggerAppComponent.builder()
-                .also { it.seedInstance(this) }
+                .application(this)
                 .build()
-                .inject(this)
     }
-
-    override fun activityInjector(): AndroidInjector<Activity> = activityInjector
 }

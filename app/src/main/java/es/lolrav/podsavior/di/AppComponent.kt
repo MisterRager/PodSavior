@@ -1,17 +1,27 @@
 package es.lolrav.podsavior.di
 
+import android.app.Application
+import dagger.BindsInstance
 import dagger.Component
-import dagger.android.AndroidInjectionModule
-import dagger.android.AndroidInjector
-import es.lolrav.podsavior.PodApplication
+import es.lolrav.podsavior.view.addseries.di.AddSeriesComponent
+import es.lolrav.podsavior.view.home.di.HomeComponent
+import javax.inject.Singleton
 
+@Singleton
 @Component(modules = [
-    //ActivityBuilderModule::class,
-    AndroidInjectionModule::class,
+    AppModule::class,
     RoomModule::class,
-    AppModule::class
+    NetModule::class
 ])
-interface AppComponent : AndroidInjector<PodApplication> {
+interface AppComponent {
     @Component.Builder
-    abstract class Builder : AndroidInjector.Builder<PodApplication>()
+    interface Builder {
+        @BindsInstance
+        fun application(application: Application): Builder
+
+        fun build(): AppComponent
+    }
+
+    fun buildSeriesComponent(): AddSeriesComponent.Builder
+    fun buildHomeComponent(): HomeComponent.Builder
 }

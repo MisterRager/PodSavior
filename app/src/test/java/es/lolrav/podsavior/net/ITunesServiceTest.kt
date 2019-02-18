@@ -10,7 +10,7 @@ class ITunesServiceTest {
 
     @Before
     fun setup() {
-        iTunes = NetModule().let { net ->
+        iTunes = NetModule.let { net ->
             net.providesMoshi()
                     .let(net::providesITunesRetrofit)
                     .let(net::providesITunesService)

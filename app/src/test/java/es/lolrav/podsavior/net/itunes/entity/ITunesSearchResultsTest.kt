@@ -8,7 +8,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 class ITunesSearchResultsTest {
-    private val moshi: Moshi get() = NetModule().providesMoshi()
+    private val moshi: Moshi get() = NetModule.providesMoshi()
 
     @Test
     fun testParseJson() {
