@@ -9,7 +9,6 @@ interface AddSeriesComponent {
 
     @Subcomponent.Builder
     interface Builder {
-        fun fragment(addSeriesFragment: AddSeriesFragment): Builder
         fun build(): AddSeriesComponent
     }
 }

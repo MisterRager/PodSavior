@@ -7,12 +7,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import es.lolrav.podsavior.R
+import es.lolrav.podsavior.android.onTextIsUpdated
+import es.lolrav.podsavior.android.toLiveData
 import es.lolrav.podsavior.di.has.appComponent
 import es.lolrav.podsavior.view.addseries.di.AddSeriesComponent
 import es.lolrav.podsavior.view.addseries.di.HasAddSeriesComponent
 import es.lolrav.podsavior.view.addseries.view.AddSeriesAdapter
 import es.lolrav.podsavior.view.addseries.viewmodel.AddSeriesViewModel
+import es.lolrav.podsavior.view.observer.UpdateViewWhenTextIsDifferent
 import javax.inject.Inject
 
 class AddSeriesFragment : Fragment(), HasAddSeriesComponent {
@@ -29,7 +35,30 @@ class AddSeriesFragment : Fragment(), HasAddSeriesComponent {
     ): View? =
             inflater.inflate(R.layout.fragment_add_series, container, false).apply {
                 findViewById<EditText>(R.id.edittext_search).let { searchBox ->
+                    // Set search box to viewmodel state
+                    viewModel.searchQuery
+                            .observe(viewLifecycleOwner, UpdateViewWhenTextIsDifferent(searchBox))
+
+                    searchBox.onTextIsUpdated
+                            .toLiveData()
+                            .observe(viewLifecycleOwner, Observer {
+                                viewModel.searchQuery.value = it
+                            })
                 }
+
+                findViewById<RecyclerView>(R.id.recyclerview_series).also { recycler ->
+                    recycler.layoutManager = LinearLayoutManager(context)
+                    recycler.adapter = adapter
+                }
+
+                viewModel.seriesList.observe(viewLifecycleOwner, Observer { seriesList ->
+                    adapter.items.apply {
+                        clear()
+                        addAll(seriesList)
+                    }
+
+                    adapter.notifyDataSetChanged()
+                })
             }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +68,6 @@ class AddSeriesFragment : Fragment(), HasAddSeriesComponent {
 
     override val addSeriesComponent: AddSeriesComponent by lazy {
         context!!.appComponent!!.buildSeriesComponent()
-                .fragment(this)
                 .build()
     }
 }

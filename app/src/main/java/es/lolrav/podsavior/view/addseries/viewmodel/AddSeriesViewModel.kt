@@ -4,22 +4,22 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.LiveDataReactiveStreams
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import es.lolrav.podsavior.data.CompositeItemSource
 import es.lolrav.podsavior.data.ItemSource
 import es.lolrav.podsavior.data.ext.switchMap
 import es.lolrav.podsavior.database.entity.Series
 import javax.inject.Inject
+import javax.inject.Qualifier
 
 class AddSeriesViewModel
 @Inject
-constructor(seriesSources: Set<@JvmSuppressWildcards ItemSource<@JvmSuppressWildcards Series>>) : ViewModel() {
-    private val compositeSource: ItemSource<Series> =
-            CompositeItemSource(*seriesSources.toTypedArray())
-
-    val searchQuery: MutableLiveData<String> = MutableLiveData()
+constructor(@RootSeriesSource seriesSource: ItemSource<Series>) : ViewModel() {
+    val searchQuery: MutableLiveData<CharSequence> = MutableLiveData()
 
     val seriesList: LiveData<List<Series>> =
             searchQuery.switchMap {
-                LiveDataReactiveStreams.fromPublisher(compositeSource.findByName(it))
+                LiveDataReactiveStreams.fromPublisher(seriesSource.findByName(it))
             }
 }
+
+@Qualifier
+annotation class RootSeriesSource

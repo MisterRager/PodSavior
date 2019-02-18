@@ -3,10 +3,11 @@ package es.lolrav.podsavior.view.addseries.di
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoSet
+import es.lolrav.podsavior.data.CompositeItemSource
 import es.lolrav.podsavior.data.ItemSource
 import es.lolrav.podsavior.database.dao.SeriesDao
 import es.lolrav.podsavior.database.entity.Series
-import io.reactivex.Flowable
+import es.lolrav.podsavior.view.addseries.viewmodel.RootSeriesSource
 
 @Module
 object AddSeriesModule {
@@ -21,9 +22,13 @@ object AddSeriesModule {
                 }
             }
 
-    @[JvmStatic Provides IntoSet]
-    fun providesDummySeriesSource(): ItemSource<@JvmSuppressWildcards Series> =
-            object : ItemSource<Series> {
-                override fun findByName(name: String): Flowable<List<Series>> = Flowable.empty()
-            }
+    @[JvmStatic Provides]
+    fun providesCompositeSeriesSource(
+            seriesSources: Set<@JvmSuppressWildcards ItemSource<@JvmSuppressWildcards Series>>
+    ): CompositeItemSource<Series> = CompositeItemSource(sources = *seriesSources.toTypedArray())
+
+    @[JvmStatic Provides RootSeriesSource]
+    fun providesRootSeriesSource(
+            compositeSeriesSource: CompositeItemSource<Series>
+    ): ItemSource<Series> = compositeSeriesSource
 }
