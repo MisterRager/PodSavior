@@ -9,6 +9,7 @@ import es.lolrav.podsavior.database.dao.SeriesDao
 import es.lolrav.podsavior.database.entity.Series
 import es.lolrav.podsavior.net.itunes.ITunesSeriesSource
 import es.lolrav.podsavior.net.itunes.ITunesService
+import es.lolrav.podsavior.net.itunes.convert.ITunesEntityConversions
 import es.lolrav.podsavior.view.addseries.viewmodel.RootSeriesSource
 
 @Module
@@ -26,16 +27,9 @@ object AddSeriesModule {
 
     @[JvmStatic Provides IntoSet]
     fun providesITunesSeriesSource(
-            service: ITunesService
-    ): ItemSource<Series> = ITunesSeriesSource(service) { itunes ->
-        Series(
-                uid = "itunes_series#${itunes.id}",
-                name = itunes.name,
-                feedUri = itunes.rssFeedUrl ?: "",
-                description = "",
-                isSubscribed = false
-        )
-    }
+            service: ITunesService,
+            conversions: ITunesEntityConversions
+    ): ItemSource<Series> = ITunesSeriesSource(service, conversions::resultToSeries)
 
     @[JvmStatic Provides]
     fun providesCompositeSeriesSource(

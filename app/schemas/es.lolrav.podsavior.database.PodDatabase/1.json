@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "bc0c7512045e49d0939895dc92a7e8c2",
+    "identityHash": "7bbc68e26ca7f1843e22bb730eea7788",
     "entities": [
       {
         "tableName": "Series",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `name` TEXT NOT NULL, `feedUri` TEXT NOT NULL, `description` TEXT, `isSubscribed` INTEGER NOT NULL, PRIMARY KEY(`uid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `name` TEXT NOT NULL, `artistName` TEXT, `feedUri` TEXT NOT NULL, `description` TEXT, `isSubscribed` INTEGER NOT NULL, `iconPath` TEXT, PRIMARY KEY(`uid`))",
         "fields": [
           {
             "fieldPath": "uid",
@@ -19,6 +19,12 @@
             "columnName": "name",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "artistName",
+            "columnName": "artistName",
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "feedUri",
@@ -37,6 +43,12 @@
             "columnName": "isSubscribed",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "iconPath",
+            "columnName": "iconPath",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -84,7 +96,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"bc0c7512045e49d0939895dc92a7e8c2\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"7bbc68e26ca7f1843e22bb730eea7788\")"
     ]
   }
 }

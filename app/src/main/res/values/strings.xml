@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Pod Savior</string>
+    <string name="podcast_icon">Podcast Icon</string>
 </resources>

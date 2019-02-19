@@ -12,4 +12,6 @@ data class ITunesSeries(
         @Json(name = "artistName")
         val artistName: String,
         @Json(name = "feedUrl")
-        val rssFeedUrl: String?)
+        val rssFeedUrl: String?,
+        @Json(name = "artworkUrl600")
+        val feedIconUrl: String?)

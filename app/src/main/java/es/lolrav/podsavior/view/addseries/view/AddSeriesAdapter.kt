@@ -3,6 +3,7 @@ package es.lolrav.podsavior.view.addseries.view
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.squareup.picasso.Picasso
 import es.lolrav.podsavior.R
 import es.lolrav.podsavior.database.entity.Series
 import io.reactivex.processors.PublishProcessor
@@ -27,7 +28,11 @@ constructor() : RecyclerView.Adapter<AddSeriesViewHolder>() {
 
     override fun onBindViewHolder(holder: AddSeriesViewHolder, position: Int) {
         items[position].let { series ->
-            holder.title.setText(series.name)
+            holder.title.text = series.name
+            series.artistName?.let { holder.artist.text = it }
+            series.iconPath
+                    ?.let { iconPath -> Picasso.get().load(iconPath) }
+                    ?.into(holder.icon)
         }
     }
 

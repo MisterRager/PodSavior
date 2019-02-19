@@ -62,7 +62,6 @@ class AddSeriesFragment : Fragment(), HasAddSeriesComponent {
     }
 
     override val addSeriesComponent: AddSeriesComponent by lazy {
-        context!!.appComponent!!.buildSeriesComponent()
-                .build()
+        context!!.appComponent!!.buildSeriesComponent().build()
     }
 }

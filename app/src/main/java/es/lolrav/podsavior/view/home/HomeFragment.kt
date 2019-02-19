@@ -25,7 +25,7 @@ class HomeFragment : Fragment(), HasHomeComponent {
         }
     }
 
-    override fun onAttach(context: Context?) {
+    override fun onAttach(context: Context) {
         super.onAttach(context)
         homeComponent.inject(this)
     }
