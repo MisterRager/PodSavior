@@ -3,7 +3,7 @@ package es.lolrav.podsavior.view.home.di
 import dagger.Subcomponent
 import es.lolrav.podsavior.view.home.HomeFragment
 
-@Subcomponent
+@Subcomponent(modules = [HomeModule::class])
 interface HomeComponent {
     @Subcomponent.Builder
     interface Builder {
