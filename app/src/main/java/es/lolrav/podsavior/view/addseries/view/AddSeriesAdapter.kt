@@ -20,11 +20,7 @@ constructor() : RecyclerView.Adapter<AddSeriesViewHolder>() {
             AddSeriesViewHolder(
                     LayoutInflater.from(parent.context)
                             .inflate(R.layout.add_series_row, parent, false)
-            ).apply {
-                itemView.setOnClickListener {
-                    onClicks.onNext(items[adapterPosition])
-                }
-            }
+            ).apply { itemView.setOnClickListener { onClicks.onNext(items[adapterPosition]) } }
 
     override fun onBindViewHolder(holder: AddSeriesViewHolder, position: Int) {
         items[position].let { series ->
@@ -33,6 +29,8 @@ constructor() : RecyclerView.Adapter<AddSeriesViewHolder>() {
             series.iconPath
                     ?.let { iconPath -> Picasso.get().load(iconPath) }
                     ?.into(holder.icon)
+
+            holder.statusCheck.isChecked = series.isSubscribed
         }
     }
 

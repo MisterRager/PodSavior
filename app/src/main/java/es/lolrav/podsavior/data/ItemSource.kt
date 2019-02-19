@@ -2,16 +2,15 @@ package es.lolrav.podsavior.data
 
 import io.reactivex.Flowable
 
-typealias ItemSourceResultStream<T> = Flowable<List<T>>
-typealias ItemSourceStreamFactory<T> = (CharSequence) -> ItemSourceResultStream<T>
+typealias ItemSourceStreamFactory<T> = (CharSequence) -> Flowable<List<T>>
 
 interface ItemSource<T> {
-    fun findByName(name: CharSequence): ItemSourceResultStream<T>
+    fun findByName(name: CharSequence): Flowable<List<T>>
 
     private class ItemSourceImpl<T>(
             private val finder: ItemSourceStreamFactory<T>
     ) : ItemSource<T> {
-        override fun findByName(name: CharSequence): ItemSourceResultStream<T> = finder(name)
+        override fun findByName(name: CharSequence): Flowable<List<T>> = finder(name)
     }
 
     companion object {

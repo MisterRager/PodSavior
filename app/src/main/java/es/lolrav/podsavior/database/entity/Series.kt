@@ -12,9 +12,10 @@ data class Series(
         val feedUri: String,
         val description: String? = null,
         val isSubscribed: Boolean = false,
+        val isSaved: Boolean = false,
         val iconPath: String? = null
 ) {
-        companion object {
-                const val TABLE_NAME = "series"
-        }
+    companion object {
+        const val TABLE_NAME = "series"
+    }
 }

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import es.lolrav.podsavior.R
 import es.lolrav.podsavior.android.onTextIsUpdated
 import es.lolrav.podsavior.android.toLiveData
+import es.lolrav.podsavior.data.ext.toLiveData
 import es.lolrav.podsavior.di.has.appComponent
 import es.lolrav.podsavior.view.addseries.di.AddSeriesComponent
 import es.lolrav.podsavior.view.addseries.di.HasAddSeriesComponent
@@ -54,6 +55,16 @@ class AddSeriesFragment : Fragment(), HasAddSeriesComponent {
                 viewModel.seriesList.observe(viewLifecycleOwner, Observer { seriesList ->
                     adapter.items = seriesList.toMutableList()
                 })
+
+                adapter.onClick
+                        .toLiveData()
+                        .observe(viewLifecycleOwner, Observer { clickedSeries ->
+                            if (clickedSeries.isSubscribed) {
+                                viewModel.unsubscribeTo(clickedSeries)
+                            }else {
+                                viewModel.subscribeTo(clickedSeries)
+                            }
+                        })
             }
 
     override fun onCreate(savedInstanceState: Bundle?) {
