@@ -52,12 +52,7 @@ class AddSeriesFragment : Fragment(), HasAddSeriesComponent {
                 }
 
                 viewModel.seriesList.observe(viewLifecycleOwner, Observer { seriesList ->
-                    adapter.items.apply {
-                        clear()
-                        addAll(seriesList)
-                    }
-
-                    adapter.notifyDataSetChanged()
+                    adapter.items = seriesList.toMutableList()
                 })
             }
 
