@@ -10,12 +10,13 @@ buildscript {
     ext.appcompat_version= "1.0.2"
     ext.androidx_version= "1.0.0"
     ext.vectordrawable_version= "1.0.1"
-    ext.material_version= "1.1.0-alpha02"
-    ext.nav_version = "1.0.0-alpha09"
+    ext.material_version= "1.1.0-alpha03"
+    ext.nav_version = "1.0.0-beta02"
     ext.dagger_version = "2.16"
     ext.retrofit_version = "2.5.0"
     ext.moshi_version = "1.8.0"
     ext.multidex_version = "1.0.3"
+    ext.fresco_version = "1.12.1"
 
     repositories {
         google()

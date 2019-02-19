@@ -90,4 +90,7 @@ dependencies {
     // Moshi
     implementation "com.squareup.moshi:moshi:$moshi_version"
     implementation "com.squareup.moshi:moshi-kotlin:$moshi_version"
+
+    // Fresco image loader
+    implementation "com.facebook.fresco:fresco:$fresco_version"
 }
