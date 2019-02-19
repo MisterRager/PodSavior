@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "7bbc68e26ca7f1843e22bb730eea7788",
+    "identityHash": "cbcd5b133b8d7696ce3384df0298d6ce",
     "entities": [
       {
         "tableName": "Series",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `name` TEXT NOT NULL, `artistName` TEXT, `feedUri` TEXT NOT NULL, `description` TEXT, `isSubscribed` INTEGER NOT NULL, `iconPath` TEXT, PRIMARY KEY(`uid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `name` TEXT NOT NULL, `artistName` TEXT, `feedUri` TEXT NOT NULL, `description` TEXT, `isSubscribed` INTEGER NOT NULL, `isSaved` INTEGER NOT NULL, `iconPath` TEXT, PRIMARY KEY(`uid`))",
         "fields": [
           {
             "fieldPath": "uid",
@@ -41,6 +41,12 @@
           {
             "fieldPath": "isSubscribed",
             "columnName": "isSubscribed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isSaved",
+            "columnName": "isSaved",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -96,7 +102,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"7bbc68e26ca7f1843e22bb730eea7788\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"cbcd5b133b8d7696ce3384df0298d6ce\")"
     ]
   }
 }
