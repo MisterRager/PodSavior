@@ -3,66 +3,62 @@ package es.lolrav.podsavior.view.addseries.di
 import dagger.Module
 import dagger.Provides
 import dagger.Reusable
-import es.lolrav.podsavior.data.CallbackItemSource
-import es.lolrav.podsavior.data.ItemSource
-import es.lolrav.podsavior.data.OverlayItemSource
+import dagger.multibindings.IntoSet
+import es.lolrav.podsavior.data.*
+import es.lolrav.podsavior.data.merge.MergeSeries
 import es.lolrav.podsavior.database.dao.SeriesDao
 import es.lolrav.podsavior.database.entity.Series
+import es.lolrav.podsavior.di.qualifiers.DataScheduler
 import es.lolrav.podsavior.net.itunes.ITunesSeriesSource
 import es.lolrav.podsavior.net.itunes.ITunesService
 import es.lolrav.podsavior.net.itunes.convert.ITunesEntityConversions
-import es.lolrav.podsavior.view.addseries.viewmodel.AddSeriesViewModel
 import es.lolrav.podsavior.view.addseries.viewmodel.RootSeriesSource
-import io.reactivex.Flowable
-import io.reactivex.schedulers.Schedulers
-import javax.inject.Named
+import io.reactivex.Scheduler
 
 @Module
 object AddSeriesModule {
-    @[JvmStatic Provides Reusable]
+    @[JvmStatic Provides IntoSet]
     fun providesLocalSeriesSource(
             dao: SeriesDao
-    ): CallbackItemSource<Series> = CallbackItemSource { dao.findByName(it.toString()) }
+    ): ItemSource<Series> = CallbackItemSource { dao.findByName(it.toString()) }
 
-    @[JvmStatic Provides Reusable]
+    @[JvmStatic Provides IntoSet]
     fun providesITunesSeriesSource(
             service: ITunesService,
             conversions: ITunesEntityConversions
-    ): ITunesSeriesSource = ITunesSeriesSource(service, conversions::resultToSeries)
+    ): ItemSource<Series> = ITunesSeriesSource(service, conversions::resultToSeries)
 
-    @[JvmStatic Provides]
+    @[JvmStatic Provides Reusable]
+    fun providesMatchAndMerge(merger: MergeSeries): MatchAndMerge<Series> = merger
+
+    @[JvmStatic Provides Reusable]
+    fun providesSerialInsertItem(merger: MatchAndMerge<Series>): SerialInsertItem<Series> =
+            SerialInsertItem(merger)
+
+    @[JvmStatic Provides Reusable]
+    fun providesInsertItem(insertion: SerialInsertItem<Series>): OverlayInsertItem<Series> =
+            insertion
+
+    @[JvmStatic Provides Reusable]
+    fun providesInsertionOverlayProcessor(
+            insertion: OverlayInsertItem<Series>
+    ): InsertionOverlayProcessor<Series> = InsertionOverlayProcessor(insertion)
+
+    @[JvmStatic Provides Reusable]
+    fun providesOverlayProcessor(
+            insertionProcessor: InsertionOverlayProcessor<Series>
+    ): OverlayProcessor<Series> = insertionProcessor
+
+    @[JvmStatic Provides Reusable]
     fun providesCompositeSeriesSource(
-            localSource: CallbackItemSource<Series>,
-            iTunesSource: ITunesSeriesSource
-    ): OverlayItemSource<Series> =
-            OverlayItemSource(
-                    Schedulers.io(),
-                    setOf(localSource, iTunesSource),
-                    OverlayItemSource.buildMatchAndMergeOverlayFn(
-                            matchFn = { seriesA, seriesB -> seriesA.uid == seriesB.uid },
-                            mergeFn = { seriesA, seriesB ->
-                                Series(
-                                        uid = seriesA.uid,
-                                        name = seriesB.name,
-                                        artistName = seriesB.artistName,
-                                        feedUri = seriesB.feedUri,
-                                        description = seriesB.description ?: seriesA.description,
-                                        isSubscribed = (seriesB.isSaved && seriesB.isSubscribed) ||
-                                                (!seriesB.isSaved &&
-                                                        seriesA.isSaved &&
-                                                        seriesA.isSubscribed),
-                                        isSaved = seriesA.isSaved || seriesB.isSaved,
-                                        iconPath = seriesB.iconPath ?: seriesA.iconPath)
-                            }))
+            sources: Set<@JvmSuppressWildcards ItemSource<Series>>,
+            overlayProcessor: OverlayProcessor<Series>,
+            @DataScheduler scheduler: Scheduler
+    ): OverlayItemSource<Series> = OverlayItemSource(scheduler, sources, overlayProcessor)
 
     @RootSeriesSource
-    @[JvmStatic Provides]
-    fun providesMainSeriesSource(overlayItemSource: OverlayItemSource<Series>): ItemSource<Series> =
-            overlayItemSource
-
-    @[JvmStatic Provides]
-    fun providesViewModel(
-            dao: SeriesDao,
-            @RootSeriesSource source: ItemSource<Series>
-    ): AddSeriesViewModel = AddSeriesViewModel(source, dao)
+    @[JvmStatic Provides Reusable]
+    fun providesMainSeriesSource(
+            overlayItemSource: OverlayItemSource<Series>
+    ): ItemSource<Series> = overlayItemSource
 }

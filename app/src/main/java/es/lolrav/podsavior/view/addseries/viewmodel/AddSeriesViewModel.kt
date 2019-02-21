@@ -14,8 +14,9 @@ import javax.inject.Qualifier
 import javax.inject.Singleton
 
 class AddSeriesViewModel
+@Inject
 constructor(
-        seriesSource: ItemSource<Series>,
+        @RootSeriesSource seriesSource: ItemSource<Series>,
         private val seriesDao: SeriesDao
 ) : ViewModel() {
     val searchQuery: MutableLiveData<CharSequence> = MutableLiveData()
