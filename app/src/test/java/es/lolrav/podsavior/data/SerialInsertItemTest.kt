@@ -32,6 +32,10 @@ class SerialInsertItemTest {
 
     @Test
     fun testMatchFirstAndMergeFirst() {
+        val replaceA = Mockito.mock(Series::class.java)
+        Mockito.doReturn(true).`when`(matchAndMerge).matches(seriesA, replaceA)
+
+        val update = serialInsertItem.insert(replaceA)
     }
 
     internal class TestMerger : MatchAndMerge<Series> {
