@@ -1,6 +1,10 @@
 package es.lolrav.podsavior.data
 
-class SerialInsertItem<T>(private val matchAndMerge: MatchAndMerge<T>) : OverlayInsertItem<T> {
+import javax.inject.Inject
+
+class SerialInsertItem<T>
+@Inject
+constructor(private val matchAndMerge: MatchAndMerge<T>) : OverlayInsertItem<T> {
     override fun insert(into: List<T>, item: T): List<T> {
         val copy = into.toList()
         return copy
