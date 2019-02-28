@@ -23,7 +23,7 @@ object TestSeriesModule {
                     isSaved = random.nextBoolean(),
                     iconPath = randomUuid)
 
-    private val randomUuid: String = UUID.randomUUID().toString()
+    private val randomUuid: String get() = UUID.randomUUID().toString()
 }
 
 @Qualifier

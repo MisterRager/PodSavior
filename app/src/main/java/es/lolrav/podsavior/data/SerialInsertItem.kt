@@ -10,17 +10,17 @@ constructor(private val matchAndMerge: MatchAndMerge<T>) : OverlayInsertItem<T> 
         return copy
                 .indexOfFirst { matchAndMerge.matches(item, it) }
                 .let { matchIndex -> if (matchIndex >= 0) matchIndex else null }
-                ?.let { matchIndex ->
-                    // Head
-                    copy.subList(0, matchIndex) +
-                            // Updated item
-                            matchAndMerge.merge(copy[matchIndex], item) +
-                            // Tail
-                            if (matchIndex < copy.size) {
-                                copy.subList(matchIndex + 1, copy.size)
-                            } else {
-                                emptyList()
-                            }
-                } ?: (copy + item)
+                ?.let { matchIndex -> updateItemAt(copy, item, matchIndex) }
+                ?: (copy + item)
     }
+
+    private fun updateItemAt(into: List<T>, item: T, index: Int): List<T> =
+            into.subList(0, index) +
+                    matchAndMerge.merge(into[index], item) +
+                    if (index < into.size) {
+                        into.subList(index + 1, into.size)
+                    } else {
+                        emptyList()
+                    }
+
 }
