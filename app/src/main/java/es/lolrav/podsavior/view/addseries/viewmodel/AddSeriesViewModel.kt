@@ -11,7 +11,6 @@ import es.lolrav.podsavior.database.entity.Series
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 import javax.inject.Qualifier
-import javax.inject.Singleton
 
 class AddSeriesViewModel
 @Inject

@@ -14,6 +14,9 @@ interface SeriesDao : ItemInsertAndDelete<Series> {
     @Query("SELECT * FROM ${Series.TABLE_NAME} WHERE name LIKE :query || '%'")
     fun findByName(query: String): Flowable<List<Series>>
 
+    @Query("SELECT * FROM ${Series.TABLE_NAME} WHERE uid = :uid")
+    fun findByUid(uid: String): Flowable<Series>
+
     @Query("SELECT * FROM ${Series.TABLE_NAME} WHERE isSubscribed")
     fun findAllSubscriptions(): Flowable<List<Series>>
 }

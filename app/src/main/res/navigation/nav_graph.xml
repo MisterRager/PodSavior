@@ -21,4 +21,15 @@
         android:id="@+id/action_global_addSeriesFragment"
         app:destination="@id/addSeriesFragment"
         />
+    <fragment
+        android:id="@+id/seriesFragment"
+        android:name="es.lolrav.podsavior.view.series.SeriesFragment"
+        android:label="SeriesFragment" >
+        <argument
+            android:name="series_uid"
+            app:argType="string" />
+    </fragment>
+    <action
+        android:id="@+id/action_global_seriesFragment"
+        app:destination="@id/seriesFragment" />
 </navigation>

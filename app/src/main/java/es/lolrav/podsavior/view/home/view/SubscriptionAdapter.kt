@@ -10,22 +10,34 @@ import com.squareup.picasso.Picasso
 import dagger.Reusable
 import es.lolrav.podsavior.R
 import es.lolrav.podsavior.database.entity.Series
+import io.reactivex.Observable
+import io.reactivex.subjects.Subject
 import javax.inject.Inject
+import javax.inject.Qualifier
 
 @Reusable
 class SubscriptionAdapter
 @Inject
-constructor() : RecyclerView.Adapter<SubscriptionAdapter.ViewHolder>() {
+constructor(
+        @SeriesListClickSubscription private val clickSubject: Subject<Series>
+) : RecyclerView.Adapter<SubscriptionAdapter.ViewHolder>() {
     var items: List<Series> = mutableListOf()
         set(value) {
             field = value
             notifyDataSetChanged()
         }
 
+    val onClick: Observable<Series> by lazy { clickSubject.hide() }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
-            ViewHolder(
-                    LayoutInflater.from(parent.context)
-                            .inflate(R.layout.subscription_row, parent, false))
+            LayoutInflater.from(parent.context)
+                    .inflate(R.layout.subscription_row, parent, false)
+                    .let(::ViewHolder)
+                    .apply {
+                        itemView.setOnClickListener {
+                            items[this.adapterPosition]
+                        }
+                    }
 
     override fun getItemCount(): Int = items.size
 
@@ -47,3 +59,6 @@ constructor() : RecyclerView.Adapter<SubscriptionAdapter.ViewHolder>() {
         val latestDate: TextView by lazy { view.findViewById<TextView>(R.id.subscription_latest_date) }
     }
 }
+
+@Qualifier
+annotation class SeriesListClickSubscription
