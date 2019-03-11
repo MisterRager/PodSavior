@@ -9,4 +9,7 @@ import io.reactivex.Flowable
 interface EpisodeDao : ItemInsertAndDelete<Episode> {
     @Query("SELECT * FROM ${Episode.TABLE_NAME}")
     fun getAll(): Flowable<List<Episode>>
+
+    @Query("SELECT * FROM ${Episode.TABLE_NAME} WHERE seriesUid = :seriesUid")
+    fun getBySeries(seriesUid: String): Flowable<List<Episode>>
 }

@@ -9,9 +9,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import es.lolrav.podsavior.R
 
-/**
- * TODO: document your custom view class.
- */
 class SeriesHome : ConstraintLayout {
     constructor(context: Context) : super(context) {
         init(null, 0)
@@ -31,6 +28,6 @@ class SeriesHome : ConstraintLayout {
 
     val coverImage: ImageView by lazy { findViewById<ImageView>(R.id.series_cover_image) }
     val title: TextView by lazy { findViewById<TextView>(R.id.series_title) }
-    val descriptionView: TextView by lazy { findViewById<TextView>(R.id.series_description) }
-    val episodesView: RecyclerView by lazy { findViewById<RecyclerView>(R.id.episodes) }
+    val description: TextView by lazy { findViewById<TextView>(R.id.series_description) }
+    val episodes: RecyclerView by lazy { findViewById<RecyclerView>(R.id.episodes) }
 }

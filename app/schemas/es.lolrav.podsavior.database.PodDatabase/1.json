@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "cbcd5b133b8d7696ce3384df0298d6ce",
+    "identityHash": "16a8e0498b9596493f0fdb19d5b4f297",
     "entities": [
       {
         "tableName": "Series",
@@ -68,7 +68,7 @@
       },
       {
         "tableName": "episode",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `seriesUid` TEXT NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`uid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `seriesUid` TEXT NOT NULL, `name` TEXT NOT NULL, `audioUri` TEXT NOT NULL, `duration` INTEGER NOT NULL, PRIMARY KEY(`uid`))",
         "fields": [
           {
             "fieldPath": "uid",
@@ -87,6 +87,18 @@
             "columnName": "name",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "audioUri",
+            "columnName": "audioUri",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "duration",
+            "columnName": "duration",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -102,7 +114,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"cbcd5b133b8d7696ce3384df0298d6ce\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"16a8e0498b9596493f0fdb19d5b4f297\")"
     ]
   }
 }

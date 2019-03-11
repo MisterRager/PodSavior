@@ -2,6 +2,8 @@ package es.lolrav.podsavior.di
 
 import android.app.Application
 import android.content.Context
+import androidx.work.WorkManager
+import com.squareup.picasso.Picasso
 import dagger.Module
 import dagger.Provides
 import dagger.Reusable
@@ -19,4 +21,10 @@ object AppModule {
 
     @[JvmStatic Provides DataScheduler Reusable]
     fun providesDataScheduler(): Scheduler = Schedulers.io()
+
+    @[JvmStatic Reusable Provides]
+    fun providesWorkManager(): WorkManager = WorkManager.getInstance()
+
+    @[JvmStatic Reusable Provides]
+    fun providesPicasso(): Picasso = Picasso.get()
 }

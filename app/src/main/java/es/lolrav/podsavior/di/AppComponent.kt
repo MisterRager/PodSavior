@@ -3,8 +3,11 @@ package es.lolrav.podsavior.di
 import android.app.Application
 import dagger.BindsInstance
 import dagger.Component
+import es.lolrav.podsavior.gretchen.FetchFeed
+import es.lolrav.podsavior.gretchen.jobs.UpdateSeriesFromRss
 import es.lolrav.podsavior.view.addseries.di.AddSeriesComponent
 import es.lolrav.podsavior.view.home.di.HomeComponent
+import es.lolrav.podsavior.view.series.di.SeriesComponent
 import javax.inject.Singleton
 
 @Singleton
@@ -22,6 +25,10 @@ interface AppComponent {
         fun build(): AppComponent
     }
 
-    fun buildSeriesComponent(): AddSeriesComponent.Builder
+    fun buildAddSeriesComponent(): AddSeriesComponent.Builder
     fun buildHomeComponent(): HomeComponent.Builder
+    fun buildSeriesComponent(): SeriesComponent.Builder
+
+    fun inject(fetchFeed: FetchFeed)
+    fun inject(worker: UpdateSeriesFromRss)
 }
