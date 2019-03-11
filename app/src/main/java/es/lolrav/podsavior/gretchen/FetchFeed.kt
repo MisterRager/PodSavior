@@ -61,7 +61,10 @@ class FetchFeed : IntentService("FetchFeed") {
 
         fun fetchSeries(context: Context, seriesUid: String) {
             Intent(context, FetchFeed::class.java)
-                    .apply { putExtra(SERIES_UID, seriesUid) }
+                    .apply {
+                        putExtra(SERIES_UID, seriesUid)
+                        action = ACTION_UPDATE_SERIES_FEED
+                    }
                     .let(context::startService)
         }
     }

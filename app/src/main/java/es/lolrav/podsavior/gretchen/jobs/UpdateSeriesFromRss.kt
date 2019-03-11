@@ -1,18 +1,18 @@
 package es.lolrav.podsavior.gretchen.jobs
 
 import android.content.Context
+import android.net.Uri
 import androidx.work.*
 import com.google.common.util.concurrent.ListenableFuture
 import es.lolrav.podsavior.data.rx.RxListenableFuture
 import es.lolrav.podsavior.data.xml.FeedParser
+import es.lolrav.podsavior.data.xml.Or
 import es.lolrav.podsavior.database.dao.EpisodeDao
 import es.lolrav.podsavior.database.dao.SeriesDao
 import es.lolrav.podsavior.database.entity.Episode
+import es.lolrav.podsavior.database.entity.Series
 import es.lolrav.podsavior.di.has.appComponent
-import io.reactivex.Completable
-import io.reactivex.Maybe
-import io.reactivex.Single
-import io.reactivex.SingleEmitter
+import io.reactivex.*
 import io.reactivex.internal.functions.Functions
 import okhttp3.*
 import org.xmlpull.v1.XmlPullParser
@@ -45,27 +45,39 @@ class UpdateSeriesFromRss(
         return (seriesUids.let(seriesDao::findByUid))
                 .take(1) // Don't need updates, just doing one
                 .flatMapIterable(Functions.identity())
-                .flatMapCompletable { series ->
-                    fetchFeed(series.feedUri)
+                .flatMap { series ->
+                    fetchFeed(requestBuilder(series.feedUri).build())
                             .map(Pair<Call, Response>::second)
                             .flatMapMaybe { response -> Maybe.fromCallable { response.body() } }
                             .map { body -> body.source().inputStream() }
                             .map(FeedParser(parser, series)::parse)
-                            .flatMapCompletable { (seriesSequence, episodeSequence) ->
-                                Completable.defer {
-                                    seriesSequence.firstOrNull()?.let { newSeries ->
-                                        seriesDao.save(newSeries)
-                                    } ?: Completable.complete()
-                                }.mergeWith(
-                                        Completable.merge(
-                                                episodeSequence.windowed(30)
-                                                        .map(List<Episode>::toTypedArray)
-                                                        .map(episodeDao::save)
-                                                        .toList()))
+                            .flatMapObservable { seriesOrEpisodes ->
+                                Observable
+                                        .create<Or<Series, Episode>> { emitter ->
+                                            seriesOrEpisodes.forEach { or ->
+                                                emitter.onNext(or)
+                                            }
+                                        }
+                                        .publish { orStream ->
+                                            Completable.mergeArray(
+                                                    orStream
+                                                            .filter { (series, _) -> series != null }
+                                                            .map { (series, _) -> series!! }
+                                                            .flatMapCompletable { seriesDao.save(it) },
+                                                    orStream
+                                                            .filter { (_, episode) -> episode != null }
+                                                            .map { (_, episode) -> episode!! }
+                                                            .window(30)
+                                                            .flatMapCompletable {
+                                                                it.toList()
+                                                                        .map(List<Episode>::toTypedArray)
+                                                                        .flatMapCompletable(episodeDao::save)
+                                                            }
+                                            ).toObservable<Any>().materialize()
+                                        }
                             }
+                            .toFlowable(BackpressureStrategy.BUFFER)
                 }
-                .toObservable<Any>()
-                .materialize()
                 .map { notification ->
                     when {
                         notification.isOnComplete -> ListenableWorker.Result.success()
@@ -77,19 +89,28 @@ class UpdateSeriesFromRss(
                 .let(::RxListenableFuture)
     }
 
-    private fun fetchFeed(feedUri: String): Single<Pair<Call, Response>> =
+    private fun fetchFeed(request: Request): Single<Pair<Call, Response>> =
             Single.using<Pair<Call, Response>, Call>(
-                    {
-                        Request.Builder()
-                                .get()
-                                .url(feedUri)
-                                .build()
-                                .let(okHttp::newCall)
-                    },
+                    { okHttp.newCall(request) },
                     { call ->
                         Single.create { emitter -> call.enqueue(SingleCallback(emitter)) }
                     },
                     Call::cancel)
+
+    private fun requestBuilder(feedUri: String): Request.Builder =
+            Request.Builder()
+                    .get()
+                    .url(forceHttps(feedUri))
+
+    private fun forceHttps(feedUri: String): String =
+            Uri.parse(feedUri).let { uri ->
+                if (uri.scheme == "http") {
+                    Uri.parse(uri.toString().replace("http", "https"))
+                            .toString()
+                } else {
+                    feedUri
+                }
+            }
 
     private val seriesUids: Array<String>
         get() = workerParams.inputData.getStringArray(ARG_SERIES_UID) ?: emptyArray()

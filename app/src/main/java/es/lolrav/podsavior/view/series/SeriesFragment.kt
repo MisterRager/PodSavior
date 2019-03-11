@@ -24,6 +24,7 @@ class SeriesFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         component.inject(this)
+        viewModel.manuallyRefreshSeries()
     }
 
     override fun onCreateView(
@@ -34,7 +35,9 @@ class SeriesFragment : Fragment() {
         viewModel.series.observe(viewLifecycleOwner, Observer { series ->
             view.title.text = series.name
             view.description.text = series.description
-            picasso.load(series.iconPath).into(view.coverImage)
+            if (!series.iconPath.isNullOrBlank()) {
+                picasso.load(series.iconPath).into(view.coverImage)
+            }
         })
     }
 

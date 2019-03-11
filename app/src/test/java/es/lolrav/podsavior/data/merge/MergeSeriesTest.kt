@@ -1,14 +1,14 @@
 package es.lolrav.podsavior.data.merge
 
 import com.squareup.moshi.Moshi
-import dagger.Component
 import es.lolrav.podsavior.database.entity.Series
-import es.lolrav.podsavior.di.NetModule
-import es.lolrav.podsavior.di.TestSeriesModule
+import es.lolrav.podsavior.di.module.NetModule
 import es.lolrav.podsavior.net.itunes.entity.ITunesSearchResults
+import es.lolrav.podsavior.di.DaggerMergeSeriesTestComponent
 import okio.Okio
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import javax.inject.Inject
 
@@ -58,6 +58,7 @@ class MergeSeriesTest {
         assertFalse(unsubscribeWithSaved.isSubscribed)
     }
 
+    @Ignore
     @Test
     fun `full-on integration test`() {
         val moshi: Moshi = NetModule.providesMoshi()
@@ -68,17 +69,8 @@ class MergeSeriesTest {
                         javaClass.classLoader!!
                                 .getResourceAsStream("america_itunes.json"))))!!
 
-        merger.merge(parsed.results, parsed.results[0].copy(isSaved = true, isSubscribed= true))
+        //merger.merge(parsed.results, parsed.results[0].copy(isSaved = true, isSubscribed= true))
 
     }
 }
 
-@Component(modules = [TestSeriesModule::class])
-interface MergeSeriesTestComponent {
-    @Component.Builder
-    interface Buidler {
-        fun build(): MergeSeriesTestComponent
-    }
-
-    fun inject(test: MergeSeriesTest)
-}

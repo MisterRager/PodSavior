@@ -1,9 +1,11 @@
 package es.lolrav.podsavior.data.merge
 
+import dagger.Reusable
 import es.lolrav.podsavior.data.MatchAndMerge
 import es.lolrav.podsavior.database.entity.Series
 import javax.inject.Inject
 
+@Reusable
 class MergeSeries
 @Inject
 constructor() : MatchAndMerge<Series> {

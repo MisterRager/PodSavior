@@ -35,7 +35,7 @@ constructor(
                     .let(::ViewHolder)
                     .apply {
                         itemView.setOnClickListener {
-                            items[this.adapterPosition]
+                            clickSubject.onNext(items[this.adapterPosition])
                         }
                     }
 
@@ -47,6 +47,7 @@ constructor(
             item.artistName?.let { artistName -> holder.artist.text = artistName }
 
             item.iconPath
+                    ?.takeIf(String::isNotBlank)
                     ?.let { iconUri -> Picasso.get().load(iconUri) }
                     ?.into(holder.icon)
         }

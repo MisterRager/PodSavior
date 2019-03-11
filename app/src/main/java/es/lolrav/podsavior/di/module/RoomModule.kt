@@ -1,4 +1,4 @@
-package es.lolrav.podsavior.di
+package es.lolrav.podsavior.di.module
 
 import android.content.Context
 import androidx.room.Room

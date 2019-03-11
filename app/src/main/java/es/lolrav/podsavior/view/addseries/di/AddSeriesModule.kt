@@ -14,6 +14,7 @@ import es.lolrav.podsavior.net.itunes.ITunesService
 import es.lolrav.podsavior.net.itunes.convert.ITunesEntityConversions
 import es.lolrav.podsavior.view.addseries.viewmodel.RootSeriesSource
 import io.reactivex.Scheduler
+import javax.inject.Named
 
 @Module
 object AddSeriesModule {
@@ -22,11 +23,26 @@ object AddSeriesModule {
             dao: SeriesDao
     ): ItemSource<Series> = CallbackItemSource { dao.findByName(it.toString()) }
 
-    @[JvmStatic Provides IntoSet]
+    @[JvmStatic Provides Named("iTunes Source")]
     fun providesITunesSeriesSource(
             service: ITunesService,
             conversions: ITunesEntityConversions
     ): ItemSource<Series> = ITunesSeriesSource(service, conversions::resultToSeries)
+
+    @[JvmStatic Provides IntoSet]
+    fun providesSavingITunesSeriesSource(
+            @Named("iTunes Source") source: ItemSource<Series>,
+            dao: SeriesDao,
+            merger: SerialInsertItem<Series>
+    ): ItemSource<Series> = SideEffectsItemSource(source) { existingSeriesList ->
+        dao.findByUid(*existingSeriesList.map(Series::uid).toTypedArray())
+                .first(emptyList())
+                .map { foundSeriesList: List<Series> ->
+                    foundSeriesList.fold(existingSeriesList, merger::insert)
+                }
+                .map(List<Series>::toTypedArray)
+                .flatMapCompletable(dao::save)
+    }
 
     @[JvmStatic Provides Reusable]
     fun providesMatchAndMerge(merger: MergeSeries): MatchAndMerge<Series> = merger

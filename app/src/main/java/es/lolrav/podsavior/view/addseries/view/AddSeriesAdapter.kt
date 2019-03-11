@@ -27,6 +27,7 @@ constructor() : RecyclerView.Adapter<AddSeriesViewHolder>() {
             holder.title.text = series.name
             series.artistName?.let { holder.artist.text = it }
             series.iconPath
+                    ?.takeIf { it.isNotBlank() }
                     ?.let { iconPath -> Picasso.get().load(iconPath) }
                     ?.into(holder.icon)
 

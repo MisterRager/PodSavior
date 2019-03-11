@@ -1,4 +1,4 @@
-package es.lolrav.podsavior.di
+package es.lolrav.podsavior.di.module
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory

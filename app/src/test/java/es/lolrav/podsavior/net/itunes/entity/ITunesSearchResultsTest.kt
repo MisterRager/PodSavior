@@ -1,7 +1,7 @@
 package es.lolrav.podsavior.net.itunes.entity
 
 import com.squareup.moshi.Moshi
-import es.lolrav.podsavior.di.NetModule
+import es.lolrav.podsavior.di.module.NetModule
 import okio.Okio
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull

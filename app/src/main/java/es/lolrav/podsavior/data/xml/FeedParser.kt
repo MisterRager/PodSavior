@@ -8,20 +8,17 @@ import org.xmlpull.v1.XmlPullParser
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
 
-private typealias Or<A, B> = Pair<A?, B?>
+typealias Or<A, B> = Pair<A?, B?>
 
 class FeedParser(private val parser: XmlPullParser, private val series: Series) {
-    fun parse(inputStream: InputStream): Pair<Sequence<Series>, Sequence<Episode>> =
-            parseTo(inputStream).let { stream -> stream.onlyA() to stream.onlyB() }
-
-    private fun parseTo(inputStream: InputStream): Sequence<Pair<Series?, Episode?>> =
+    fun parse(inputStream: InputStream): Sequence<Or<Series, Episode>> =
             sequence {
                 parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true)
                 parser.setInput(inputStream, null)
-                parser.require(XmlPullParser.START_TAG, null, "channel")
 
                 // Start reading
                 parser.nextTag()
+                //parser.require(XmlPullParser.START_TAG, null, "channel")
 
                 var eventType = parser.eventType
 
@@ -53,7 +50,9 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
                                                     description = description ?: series.description,
                                                     artistName = artistName ?: series.artistName,
                                                     iconPath = iconPath ?: series.iconPath,
-                                                    feedUri = feedUri ?: series.feedUri
+                                                    feedUri = feedUri ?: series.feedUri,
+                                                    isSaved = series.isSaved,
+                                                    isSubscribed = series.isSubscribed
                                             ) to null)
                                 }
 
@@ -66,7 +65,7 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
                 }
             }
 
-    private suspend fun SequenceScope<Pair<Series?, Episode?>>.parseItem(
+    private suspend fun SequenceScope<Or<Series, Episode>>.parseItem(
             parser: XmlPullParser,
             series: Series
     ) {
@@ -121,11 +120,5 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
             Log.w(javaClass.simpleName, "Did not find enough fields for item \"$name\"")
         }
     }
-
-    private fun <A, B> Sequence<Or<A, B>>.onlyA(): Sequence<A> =
-            map(Or<A, B>::first).filter { it != null }.map { it!! }
-
-    private fun <A, B> Sequence<Or<A, B>>.onlyB(): Sequence<B> =
-            map(Or<A, B>::second).filter { it != null }.map { it!! }
 }
 

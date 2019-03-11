@@ -1,6 +1,10 @@
 package es.lolrav.podsavior.net
 
-import es.lolrav.podsavior.di.NetModule
+import es.lolrav.podsavior.di.module.NetModule
+import es.lolrav.podsavior.di.module.NetModule.providesITunesRetrofit
+import es.lolrav.podsavior.di.module.NetModule.providesITunesService
+import es.lolrav.podsavior.di.module.NetModule.providesMoshi
+import es.lolrav.podsavior.di.module.NetModule.providesOkHttpClient
 import es.lolrav.podsavior.net.itunes.ITunesService
 import org.junit.Before
 import org.junit.Test
@@ -10,11 +14,10 @@ class ITunesServiceTest {
 
     @Before
     fun setup() {
-        iTunes = NetModule.let { net ->
-            net.providesMoshi()
-                    .let(net::providesITunesRetrofit)
-                    .let(net::providesITunesService)
-        }
+        iTunes = providesITunesRetrofit(
+                providesMoshi(),
+                providesOkHttpClient()
+        ).let(::providesITunesService)
     }
 
     @Test
@@ -28,7 +31,7 @@ class ITunesServiceTest {
                         results.count > 0
                     }
                     it.assertValue { results ->
-                         results.results.any { result ->
+                        results.results.any { result ->
                             result.artistName == "Crooked Media"
                         }
                     }
