@@ -3,21 +3,19 @@ package es.lolrav.podsavior.gretchen.jobs
 import android.content.Context
 import androidx.work.*
 import com.google.common.util.concurrent.ListenableFuture
-import com.rometools.modules.itunes.EntryInformation
-import com.rometools.rome.feed.synd.SyndFeed
-import com.rometools.rome.io.SyndFeedInput
 import es.lolrav.podsavior.data.rx.RxListenableFuture
+import es.lolrav.podsavior.data.xml.FeedParser
 import es.lolrav.podsavior.database.dao.EpisodeDao
 import es.lolrav.podsavior.database.dao.SeriesDao
 import es.lolrav.podsavior.database.entity.Episode
-import es.lolrav.podsavior.database.entity.Series
 import es.lolrav.podsavior.di.has.appComponent
+import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.SingleEmitter
 import io.reactivex.internal.functions.Functions
 import okhttp3.*
-import org.threeten.bp.Duration
+import org.xmlpull.v1.XmlPullParser
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
@@ -35,6 +33,8 @@ class UpdateSeriesFromRss(
     lateinit var episodeDao: EpisodeDao
     @Inject
     lateinit var okHttp: OkHttpClient
+    @Inject
+    lateinit var parser: XmlPullParser
 
     override fun startWork(): ListenableFuture<Result> {
         // Make sure DI is done
@@ -45,51 +45,31 @@ class UpdateSeriesFromRss(
         return (seriesUids.let(seriesDao::findByUid))
                 .take(1) // Don't need updates, just doing one
                 .flatMapIterable(Functions.identity())
-                .flatMap { series ->
+                .flatMapCompletable { series ->
                     fetchFeed(series.feedUri)
                             .map(Pair<Call, Response>::second)
                             .flatMapMaybe { response -> Maybe.fromCallable { response.body() } }
-                            .map(ResponseBody::byteStream)
-                            .map { inputStream -> SyndFeedInput().build(inputStream.bufferedReader()) }
-                            .flatMapPublisher { feed ->
-                                seriesDao.save(Series(
-                                        uid = series.uid,
-                                        name = feed.title,
-                                        artistName = feed.author,
-                                        feedUri = feed.uri,
-                                        description = feed.description,
-                                        isSubscribed = series.isSubscribed,
-                                        isSaved = series.isSaved,
-                                        iconPath = feed.image.url
-                                )).toFlowable<SyndFeed>().startWith(feed)
-                            }
-                            .flatMapIterable { feed -> feed.entries }
-                            .map { rssEntry ->
-                                val iTunesInfo = rssEntry
-                                        .getModule("http://www.itunes.com/dtds/podcast-1.0.dtd")
-                                        .let { it as EntryInformation }
-
-                                rssEntry.enclosures
-                                        .first()
-                                        .let { audioEntry ->
-                                            Episode(
-                                                    uid = rssEntry.uri,
-                                                    seriesUid = series.uid,
-                                                    name = rssEntry.title,
-                                                    audioUri = audioEntry.url,
-                                                    duration = iTunesInfo.duration
-                                                            .milliseconds.let(Duration::ofMillis))
-                                        }
+                            .map { body -> body.source().inputStream() }
+                            .map(FeedParser(parser, series)::parse)
+                            .flatMapCompletable { (seriesSequence, episodeSequence) ->
+                                Completable.defer {
+                                    seriesSequence.firstOrNull()?.let { newSeries ->
+                                        seriesDao.save(newSeries)
+                                    } ?: Completable.complete()
+                                }.mergeWith(
+                                        Completable.merge(
+                                                episodeSequence.windowed(30)
+                                                        .map(List<Episode>::toTypedArray)
+                                                        .map(episodeDao::save)
+                                                        .toList()))
                             }
                 }
-                .toList()
-                .flatMap { episodes -> episodeDao.save(*episodes.toTypedArray()).toSingleDefault(episodes) }
-                .toFlowable()
+                .toObservable<Any>()
                 .materialize()
                 .map { notification ->
                     when {
                         notification.isOnComplete -> ListenableWorker.Result.success()
-                        notification.isOnError -> ListenableWorker.Result.retry()
+                        notification.isOnError -> ListenableWorker.Result.failure()
                         else -> ListenableWorker.Result.failure()
                     }
                 }
@@ -128,12 +108,14 @@ class UpdateSeriesFromRss(
 
     class InputMerger : androidx.work.InputMerger() {
         override fun merge(inputs: MutableList<Data>): Data =
-            inputs
-                    .asSequence()
-                    .flatMap { (it.getStringArray(ARG_SERIES_UID) ?: emptyArray()).asSequence() }
-                    .toList()
-                    .toTypedArray()
-                    .let(UpdateSeriesFromRss.Companion::buildData)
+                inputs
+                        .asSequence()
+                        .flatMap {
+                            (it.getStringArray(ARG_SERIES_UID) ?: emptyArray()).asSequence()
+                        }
+                        .toList()
+                        .toTypedArray()
+                        .let(UpdateSeriesFromRss.Companion::buildData)
     }
 
     internal class OkError(val call: Call, e: IOException) : IOException(e)

@@ -14,7 +14,10 @@ data class Episode(
         val uid: String,
         val seriesUid: String,
         val name: String,
-        val audioUri: String,
+        val description: String?,
+        val descriptionMarkup: String?,
+        val episodeUri: String,
+        val imageUri: String?,
         val duration: Duration
 ) {
         companion object {

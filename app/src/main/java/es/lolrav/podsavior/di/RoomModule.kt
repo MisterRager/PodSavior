@@ -21,7 +21,8 @@ object RoomModule {
     fun providePodDatabase(
             @Named(APP_CONTEXT) context: Context,
             @Named("database-name") dbName: String
-    ): PodDatabase = Room.databaseBuilder(context, PodDatabase::class.java, dbName).build()
+    ): PodDatabase = Room.databaseBuilder(context, PodDatabase::class.java, dbName)
+            .build()
 
     @[Provides JvmStatic Reusable]
     fun provideEpisodeDao(podDatabase: PodDatabase): EpisodeDao = podDatabase.episodeDao

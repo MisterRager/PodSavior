@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "16a8e0498b9596493f0fdb19d5b4f297",
+    "identityHash": "01e714d66c7a3c076b914bea3e34d302",
     "entities": [
       {
         "tableName": "Series",
@@ -68,7 +68,7 @@
       },
       {
         "tableName": "episode",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `seriesUid` TEXT NOT NULL, `name` TEXT NOT NULL, `audioUri` TEXT NOT NULL, `duration` INTEGER NOT NULL, PRIMARY KEY(`uid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `seriesUid` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `descriptionMarkup` TEXT, `episodeUri` TEXT NOT NULL, `imageUri` TEXT, `duration` INTEGER NOT NULL, PRIMARY KEY(`uid`))",
         "fields": [
           {
             "fieldPath": "uid",
@@ -89,10 +89,28 @@
             "notNull": true
           },
           {
-            "fieldPath": "audioUri",
-            "columnName": "audioUri",
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "descriptionMarkup",
+            "columnName": "descriptionMarkup",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "episodeUri",
+            "columnName": "episodeUri",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "imageUri",
+            "columnName": "imageUri",
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "duration",
@@ -114,7 +132,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"16a8e0498b9596493f0fdb19d5b4f297\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"01e714d66c7a3c076b914bea3e34d302\")"
     ]
   }
 }

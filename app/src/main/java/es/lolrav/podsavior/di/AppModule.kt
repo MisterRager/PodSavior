@@ -10,6 +10,8 @@ import dagger.Reusable
 import es.lolrav.podsavior.di.qualifiers.DataScheduler
 import io.reactivex.Scheduler
 import io.reactivex.schedulers.Schedulers
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 import javax.inject.Named
 
 const val APP_CONTEXT = "application"
@@ -27,4 +29,14 @@ object AppModule {
 
     @[JvmStatic Reusable Provides]
     fun providesPicasso(): Picasso = Picasso.get()
+
+    @[JvmStatic Reusable Provides]
+    fun providesXmlParserFactory(): XmlPullParserFactory =
+            XmlPullParserFactory.newInstance()
+                    .apply {
+                        isNamespaceAware = true
+                    }
+
+    @[JvmStatic Reusable Provides]
+    fun providesXmlParser(factory: XmlPullParserFactory): XmlPullParser = factory.newPullParser()
 }
