@@ -6,6 +6,7 @@ import es.lolrav.podsavior.database.entity.Series
 import org.threeten.bp.Duration
 import org.xmlpull.v1.XmlPullParser
 import java.io.InputStream
+import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicBoolean
 
 typealias Or<A, B> = Pair<A?, B?>
@@ -14,11 +15,11 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
     fun parse(inputStream: InputStream): Sequence<Or<Series, Episode>> =
             sequence {
                 parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true)
-                parser.setInput(inputStream, null)
+                parser.setInput(inputStream.bufferedReader(Charset.forName("UTF-8")))
 
                 // Start reading
                 parser.nextTag()
-                //parser.require(XmlPullParser.START_TAG, null, "channel")
+                //parser.require(XmlPullParser.START_TAG, null, "rss")
 
                 var eventType = parser.eventType
 
@@ -38,8 +39,12 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
                             "itunes" to "author" -> artistName = parser.nextText()
                             "itunes" to "summary" -> description = description ?: parser.nextText()
                             "itunes" to "image" -> iconPath = parser.nextText()
-                            "atom10" to "link" -> feedUri =
-                                    parser.getAttributeValue(null, "href")
+                            "atom10" to "link" -> {
+                                if ("self" == parser.getAttributeValue(null, "rel")) {
+                                    feedUri =
+                                            parser.getAttributeValue(null, "href")
+                                }
+                            }
                             null to "item" -> {
                                 // Dump the series data into the stream
                                 if (hasStartedItems.compareAndSet(false, true)) {
@@ -70,6 +75,7 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
             series: Series
     ) {
         var eventType = parser.eventType
+        var currentName = parser.name
 
         var name: String? = null
         var description: String? = null
@@ -78,7 +84,7 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
         var imageUri: String? = null
         var duration: Duration? = null
 
-        while (eventType != XmlPullParser.END_TAG && parser.name == "item") {
+        while (eventType != XmlPullParser.END_TAG || currentName != "item") {
             if (eventType == XmlPullParser.START_TAG) {
 
                 when (parser.prefix to parser.name) {
@@ -103,6 +109,7 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
             }
 
             eventType = parser.next()
+            currentName = parser.name
         }
 
         if (name != null && audioUri != null && duration != null) {
@@ -117,7 +124,7 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
                             duration = duration,
                             seriesUid = series.uid))
         } else {
-            Log.w(javaClass.simpleName, "Did not find enough fields for item \"$name\"")
+            //Log.w(javaClass.simpleName, "Did not find enough fields for item \"$name\"")
         }
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.work.*
 import com.google.common.util.concurrent.ListenableFuture
+import dagger.Lazy
 import es.lolrav.podsavior.data.rx.RxListenableFuture
 import es.lolrav.podsavior.data.xml.FeedParser
 import es.lolrav.podsavior.data.xml.Or
@@ -32,7 +33,7 @@ class UpdateSeriesFromRss(
     @Inject
     lateinit var episodeDao: EpisodeDao
     @Inject
-    lateinit var okHttp: OkHttpClient
+    lateinit var okHttp: Lazy<OkHttpClient>
     @Inject
     lateinit var parser: XmlPullParser
 
@@ -50,13 +51,12 @@ class UpdateSeriesFromRss(
                             .map(Pair<Call, Response>::second)
                             .flatMapMaybe { response -> Maybe.fromCallable { response.body() } }
                             .map { body -> body.source().inputStream() }
+                            .retry(5)
                             .map(FeedParser(parser, series)::parse)
                             .flatMapObservable { seriesOrEpisodes ->
                                 Observable
-                                        .create<Or<Series, Episode>> { emitter ->
-                                            seriesOrEpisodes.forEach { or ->
-                                                emitter.onNext(or)
-                                            }
+                                        .unsafeCreate<Or<Series, Episode>> {
+                                            seriesOrEpisodes.forEach(it::onNext)
                                         }
                                         .publish { orStream ->
                                             Completable.mergeArray(
@@ -78,11 +78,11 @@ class UpdateSeriesFromRss(
                             }
                             .toFlowable(BackpressureStrategy.BUFFER)
                 }
-                .map { notification ->
+                .flatMap { notification ->
                     when {
-                        notification.isOnComplete -> ListenableWorker.Result.success()
-                        notification.isOnError -> ListenableWorker.Result.failure()
-                        else -> ListenableWorker.Result.failure()
+                        notification.isOnComplete -> Flowable.just(ListenableWorker.Result.success())
+                        notification.isOnError -> Flowable.just(ListenableWorker.Result.failure())
+                        else -> Flowable.empty()
                     }
                 }
                 .first(ListenableWorker.Result.failure())
@@ -91,11 +91,14 @@ class UpdateSeriesFromRss(
 
     private fun fetchFeed(request: Request): Single<Pair<Call, Response>> =
             Single.using<Pair<Call, Response>, Call>(
-                    { okHttp.newCall(request) },
+                    { okHttp.get().newCall(request) },
                     { call ->
-                        Single.create { emitter -> call.enqueue(SingleCallback(emitter)) }
+                        Single
+                                .create<Pair<Call, Response>> { emitter -> call.enqueue(SingleCallback(emitter)) }
+                                .doOnDispose { call.cancel() }
                     },
-                    Call::cancel)
+                    {})
+
 
     private fun requestBuilder(feedUri: String): Request.Builder =
             Request.Builder()

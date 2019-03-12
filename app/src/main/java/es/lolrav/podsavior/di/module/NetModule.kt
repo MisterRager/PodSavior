@@ -8,6 +8,7 @@ import dagger.Reusable
 import es.lolrav.podsavior.net.itunes.ITUNES_BASE_URI
 import es.lolrav.podsavior.net.itunes.ITunesService
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -21,7 +22,7 @@ object NetModule {
             .add(KotlinJsonAdapterFactory())
             .build()
 
-    @[Provides JvmStatic Singleton]
+    @[Provides JvmStatic]
     fun providesOkHttpClient(): OkHttpClient = OkHttpClient.Builder().build()
 
     @[Provides JvmStatic Reusable]

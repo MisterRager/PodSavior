@@ -32,6 +32,9 @@ android {
             sourceCompatibility = 1.8
             targetCompatibility = 1.8
         }
+
+        testApplicationId = "es.lolrav.testsavior"
+        testInstrumentationRunner "android.test.InstrumentationTestRunner"
     }
 
     buildTypes {
@@ -111,7 +114,11 @@ dependencies {
     // JSR-310 support
     implementation "com.jakewharton.threetenabp:threetenabp:$threeten_abp_version"
 
-    // Rome: RSS
-    implementation("com.rometools:rome:$rome_version")
-    //implementation("com.rometools:rome-modules:$rome_version")
+    // Test XmlPullParser
+    testImplementation "net.sf.kxml:kxml2:2.3.0"
+
+
+    // Required for instrumented tests
+    androidTestImplementation "com.android.support:support-annotations:$support_annotations_version"
+    androidTestImplementation "com.android.support.test:runner:$support_test_runner_version"
 }

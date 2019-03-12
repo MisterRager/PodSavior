@@ -18,14 +18,11 @@ class FetchFeed : IntentService("FetchFeed") {
 
     override fun onCreate() {
         super.onCreate()
-
         application.appComponent.inject(this)
     }
 
     override fun onHandleIntent(intent: Intent?) {
         when (intent?.action) {
-            ACTION_UPDATE_ALL_SERIES_FEEDS -> {
-            }
             ACTION_UPDATE_SERIES_FEED -> updateSeries(intent.getStringExtra(SERIES_UID))
         }
     }
@@ -37,25 +34,8 @@ class FetchFeed : IntentService("FetchFeed") {
                         .build())
     }
 
-    /**
-     * Handle action Foo in the provided background thread with the provided
-     * parameters.
-     */
-    private fun handleActionFoo(param1: String, param2: String) {
-        TODO("Handle action Foo")
-    }
-
-    /**
-     * Handle action Baz in the provided background thread with the provided
-     * parameters.
-     */
-    private fun handleActionBaz(param1: String, param2: String) {
-        TODO("Handle action Baz")
-    }
-
     companion object {
         const val ACTION_UPDATE_SERIES_FEED = "es.lolrav.podsavior.gretchen.action.GET_ONE"
-        const val ACTION_UPDATE_ALL_SERIES_FEEDS = "es.lolrav.podsavior.gretchen.action.GET_ALL"
 
         const val SERIES_UID = "es.lolrav.podsavior.gretchen.extra.SERIES_UID"
 
