@@ -35,6 +35,10 @@ android {
 
         testApplicationId = "es.lolrav.testsavior"
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
+
+        testOptions {
+            unitTests.returnDefaultValues = true
+        }
     }
 
     buildTypes {

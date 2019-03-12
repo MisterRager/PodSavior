@@ -1,11 +1,11 @@
 package es.lolrav.podsavior.data.xml
 
 import android.util.Log
+import es.lolrav.podsavior.data.time.PatternMatchingParser
 import es.lolrav.podsavior.database.entity.Episode
 import es.lolrav.podsavior.database.entity.Series
 import org.threeten.bp.Duration
 import org.threeten.bp.Instant
-import org.threeten.bp.format.DateTimeFormatter
 import org.xmlpull.v1.XmlPullParser
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -13,9 +13,15 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 typealias Or<A, B> = Pair<A?, B?>
 
-class FeedParser(private val parser: XmlPullParser, private val series: Series) {
+class ParseFeed(
+        private val parser: XmlPullParser,
+        private val timeParser: PatternMatchingParser,
+        private val series: Series
+) {
     fun parse(inputStream: InputStream): Sequence<Or<Series, Episode>> =
             sequence {
+                Log.v(javaClass.simpleName, "Start parsing Feed for ${series.name}")
+
                 parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true)
                 parser.setInput(inputStream.bufferedReader(Charset.forName("UTF-8")))
 
@@ -49,7 +55,7 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
                                         when (parser.name) {
                                             "url" -> {
                                                 iconPath = if (iconPath.isNullOrBlank()) {
-                                                    parser.nextText()
+                                                    parser.nextText().trim()
                                                 } else {
                                                     iconPath
                                                 }
@@ -63,11 +69,13 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
                                 if ("self" == parser.getAttributeValue(null, "rel")) {
                                     feedUri =
                                             parser.getAttributeValue(null, "href")
+                                                    .trim()
                                 }
                             }
                             null to "item" -> {
                                 // Dump the series data into the stream
                                 if (hasStartedItems.compareAndSet(false, true)) {
+                                    Log.v(javaClass.simpleName, "Yield Updated Series [$title]!")
                                     yield(
                                             Series(
                                                     uid = series.uid,
@@ -110,10 +118,10 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
 
                 when (parser.prefix to parser.name) {
                     null to "title" -> name = parser.nextText()
-                    "itunes" to "title" -> name = name ?: parser.nextText()
-                    "itunes" to "summary" -> description = parser.nextText()
-                    "content" to "encoded" -> descriptionMarkup = parser.nextText()
-                    "itunes" to "image" -> imageUri = parser.nextText()
+                    "itunes" to "title" -> name = name ?: parser.nextText().trim()
+                    "itunes" to "summary" -> description = parser.nextText().trim()
+                    "content" to "encoded" -> descriptionMarkup = parser.nextText().trim()
+                    "itunes" to "image" -> imageUri = parser.nextText().trim()
                     "itunes" to "duration" -> {
                         val durationParts = parser.nextText().split(":")
 
@@ -125,11 +133,9 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
                         }
                     }
                     null to "pubDate" ->
-                        publishTime =
-                            DateTimeFormatter.RFC_1123_DATE_TIME
-                                    .parse(parser.nextText(), Instant.FROM)
+                        publishTime = timeParser.parse(parser.nextText().trim(), Instant.FROM)
                     null to "enclosure" ->
-                        audioUri = parser.getAttributeValue(null, "url")
+                        audioUri = parser.getAttributeValue(null, "url").trim()
                 }
             }
 
@@ -138,6 +144,7 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
         }
 
         if (name != null && audioUri != null && duration != null && publishTime != null) {
+            Log.v(javaClass.simpleName, "Yield Updated Episode [$name]!")
             yield(
                     null to Episode(
                             uid = audioUri,

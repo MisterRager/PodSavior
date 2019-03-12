@@ -3,6 +3,7 @@ package es.lolrav.podsavior.di
 import android.app.Application
 import dagger.BindsInstance
 import dagger.Component
+import es.lolrav.podsavior.data.time.TimeParsingModule
 import es.lolrav.podsavior.di.module.AppModule
 import es.lolrav.podsavior.di.module.NetModule
 import es.lolrav.podsavior.di.module.RoomModule
@@ -19,7 +20,8 @@ import javax.inject.Singleton
     AppModule::class,
     RoomModule::class,
     NetModule::class,
-    XmlParserModule::class
+    XmlParserModule::class,
+    TimeParsingModule::class
 ])
 interface AppComponent {
     @Component.Builder

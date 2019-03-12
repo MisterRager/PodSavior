@@ -2,11 +2,13 @@ package es.lolrav.podsavior.gretchen.jobs
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.work.*
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.Lazy
 import es.lolrav.podsavior.data.rx.RxListenableFuture
-import es.lolrav.podsavior.data.xml.FeedParser
+import es.lolrav.podsavior.data.time.PatternMatchingParser
+import es.lolrav.podsavior.data.xml.ParseFeed
 import es.lolrav.podsavior.data.xml.Or
 import es.lolrav.podsavior.database.dao.EpisodeDao
 import es.lolrav.podsavior.database.dao.SeriesDao
@@ -36,6 +38,8 @@ class UpdateSeriesFromRss(
     lateinit var okHttp: Lazy<OkHttpClient>
     @Inject
     lateinit var parser: XmlPullParser
+    @Inject
+    lateinit var dateParser: PatternMatchingParser
 
     override fun startWork(): ListenableFuture<Result> {
         // Make sure DI is done
@@ -52,7 +56,7 @@ class UpdateSeriesFromRss(
                             .flatMapMaybe { response -> Maybe.fromCallable { response.body() } }
                             .map { body -> body.source().inputStream() }
                             .retry(5)
-                            .map(FeedParser(parser, series)::parse)
+                            .map(ParseFeed(parser, dateParser, series)::parse)
                             .flatMapObservable { seriesOrEpisodes ->
                                 Observable
                                         .unsafeCreate<Or<Series, Episode>> {
@@ -122,14 +126,24 @@ class UpdateSeriesFromRss(
             private val emitter: SingleEmitter<Pair<Call, Response>>
     ) : Callback {
         override fun onFailure(call: Call, e: IOException) {
-            emitter.onError(OkError(call, e))
+            if (!emitter.isDisposed) {
+                emitter.onError(OkError(call, e))
+            } else {
+                Log.e(javaClass.simpleName, "Error Getting Feed", e)
+            }
         }
 
         override fun onResponse(call: Call, response: Response) {
             try {
-                emitter.onSuccess(call to response)
+                if (!emitter.isDisposed) {
+                    emitter.onSuccess(call to response)
+                }
             } catch (t: Throwable) {
-                emitter.onError(OkError(call, t))
+                if (!emitter.isDisposed) {
+                    emitter.onError(OkError(call, t))
+                } else {
+                    Log.e(javaClass.simpleName, "Error Getting Feed", t)
+                }
             }
         }
     }
