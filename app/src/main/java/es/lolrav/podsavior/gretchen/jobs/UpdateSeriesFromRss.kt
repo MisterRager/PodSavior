@@ -126,7 +126,11 @@ class UpdateSeriesFromRss(
         }
 
         override fun onResponse(call: Call, response: Response) {
-            emitter.onSuccess(call to response)
+            try {
+                emitter.onSuccess(call to response)
+            } catch (t: Throwable) {
+                emitter.onError(OkError(call, t))
+            }
         }
     }
 
@@ -142,7 +146,7 @@ class UpdateSeriesFromRss(
                         .let(UpdateSeriesFromRss.Companion::buildData)
     }
 
-    internal class OkError(val call: Call, e: IOException) : IOException(e)
+    internal class OkError(val call: Call, t: Throwable) : IOException(t)
 
     companion object {
         const val ARG_SERIES_UID = "es.lolrav.podsavior.gretchen.jobs.SERIES_UID"

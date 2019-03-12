@@ -2,4 +2,5 @@
     <string name="app_name">Pod Savior</string>
     <string name="podcast_icon">Podcast Icon</string>
     <string name="series_album_cover">Series Album Cover</string>
+    <string name="episode_status">Episode Status</string>
 </resources>
