@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "01e714d66c7a3c076b914bea3e34d302",
+    "identityHash": "8c08624430cffd313abb3521e9e80dfe",
     "entities": [
       {
         "tableName": "Series",
@@ -68,7 +68,7 @@
       },
       {
         "tableName": "episode",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `seriesUid` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `descriptionMarkup` TEXT, `episodeUri` TEXT NOT NULL, `imageUri` TEXT, `duration` INTEGER NOT NULL, PRIMARY KEY(`uid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `seriesUid` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `descriptionMarkup` TEXT, `episodeUri` TEXT NOT NULL, `imageUri` TEXT, `duration` INTEGER NOT NULL, `publishTime` INTEGER NOT NULL, PRIMARY KEY(`uid`))",
         "fields": [
           {
             "fieldPath": "uid",
@@ -117,6 +117,12 @@
             "columnName": "duration",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "publishTime",
+            "columnName": "publishTime",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -132,7 +138,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"01e714d66c7a3c076b914bea3e34d302\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"8c08624430cffd313abb3521e9e80dfe\")"
     ]
   }
 }

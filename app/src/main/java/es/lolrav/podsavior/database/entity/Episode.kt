@@ -6,6 +6,7 @@ import androidx.room.TypeConverters
 import es.lolrav.podsavior.database.convert.ThreeTenAbpConverter
 import es.lolrav.podsavior.database.entity.Episode.Companion.TABLE_NAME
 import org.threeten.bp.Duration
+import org.threeten.bp.Instant
 
 @TypeConverters(ThreeTenAbpConverter::class)
 @Entity(tableName = TABLE_NAME)
@@ -18,7 +19,8 @@ data class Episode(
         val descriptionMarkup: String?,
         val episodeUri: String,
         val imageUri: String?,
-        val duration: Duration
+        val duration: Duration,
+        val publishTime: Instant
 ) {
         companion object {
             const val TABLE_NAME = "episode"

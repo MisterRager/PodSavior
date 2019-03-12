@@ -4,6 +4,8 @@ import android.util.Log
 import es.lolrav.podsavior.database.entity.Episode
 import es.lolrav.podsavior.database.entity.Series
 import org.threeten.bp.Duration
+import org.threeten.bp.Instant
+import org.threeten.bp.format.DateTimeFormatter
 import org.xmlpull.v1.XmlPullParser
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -101,6 +103,7 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
         var audioUri: String? = null
         var imageUri: String? = null
         var duration: Duration? = null
+        var publishTime: Instant? = null
 
         while (eventType != XmlPullParser.END_TAG || currentName != "item") {
             if (eventType == XmlPullParser.START_TAG) {
@@ -121,7 +124,12 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
                             else -> duration = Duration.ofHours(durationParts[0].toLong()).plusMinutes(durationParts[1].toLong()).plusSeconds(durationParts[2].toLong())
                         }
                     }
-                    null to "enclosure" -> audioUri = parser.getAttributeValue(null, "url")
+                    null to "pubDate" ->
+                        publishTime =
+                            DateTimeFormatter.RFC_1123_DATE_TIME
+                                    .parse(parser.nextText(), Instant.FROM)
+                    null to "enclosure" ->
+                        audioUri = parser.getAttributeValue(null, "url")
                 }
             }
 
@@ -129,7 +137,7 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
             currentName = parser.name
         }
 
-        if (name != null && audioUri != null && duration != null) {
+        if (name != null && audioUri != null && duration != null && publishTime != null) {
             yield(
                     null to Episode(
                             uid = audioUri,
@@ -139,7 +147,8 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
                             descriptionMarkup = descriptionMarkup,
                             imageUri = imageUri,
                             duration = duration,
-                            seriesUid = series.uid))
+                            seriesUid = series.uid,
+                            publishTime = publishTime))
         } else {
             //Log.w(javaClass.simpleName, "Did not find enough fields for item \"$name\"")
         }

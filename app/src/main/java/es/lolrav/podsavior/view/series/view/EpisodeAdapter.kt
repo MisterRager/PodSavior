@@ -9,6 +9,13 @@ import com.squareup.picasso.Picasso
 import dagger.Reusable
 import es.lolrav.podsavior.database.entity.Episode
 import es.lolrav.podsavior.view.common.BasicViewHolder
+import org.threeten.bp.Duration
+import org.threeten.bp.Instant
+import org.threeten.bp.MonthDay
+import org.threeten.bp.ZoneId
+import org.threeten.bp.format.TextStyle
+import org.threeten.bp.temporal.ChronoUnit
+import java.util.*
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import javax.inject.Inject
@@ -40,7 +47,9 @@ constructor(
                 holder.heldView.title.text = episode.name
                 holder.heldView.summary.text =
                         episode.descriptionMarkup?.let(Html::fromHtml) ?: episode.description ?: ""
-                holder.heldView.duration.text = episode.duration.toString()
+                holder.heldView.duration.text = episode.duration.formatted
+                holder.heldView.date.text = episode.publishTime.formatted
+
             }
         }
     }
@@ -53,4 +62,31 @@ constructor(
             }
         }
     }
+
+    private val Instant.formatted: String
+        get() = MonthDay.from(atZone(ZoneId.systemDefault()))
+                .let { date ->
+                    date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                            .let { monthName -> "$monthName ${date.dayOfMonth}" }
+                }
+
+    private val Duration.formatted: String
+        get() =
+            if (toDays() == 0L) {
+                if (toHours() == 0L) {
+                    if (toMinutes() == 0L) {
+                        secondStr
+                    } else {
+                        "$minuteStr:$secondStr"
+                    }
+                } else {
+                    "$hourStr:$minuteStr:$secondStr"
+                }
+            } else {
+                "${toDays()} days"
+            }
+
+    private val Duration.secondStr: String get() = String.format("%02d", seconds % 60)
+    private val Duration.minuteStr: String get() = String.format("%02d", toMinutes() % 60)
+    private val Duration.hourStr: String get() = toHours().toString()
 }
