@@ -112,15 +112,14 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
                     "content" to "encoded" -> descriptionMarkup = parser.nextText()
                     "itunes" to "image" -> imageUri = parser.nextText()
                     "itunes" to "duration" -> {
-                        val durationParts = parser.nextText().split(":").asReversed()
+                        val durationParts = parser.nextText().split(":")
 
-                        val seconds: Long = durationParts[0].toLong()
-                        val minutes: Long = if (durationParts.size > 1) durationParts[1].toLong() else 0
-                        val hours: Long = if (durationParts.size > 2) durationParts[2].toLong() else 0
-
-                        duration = Duration.ofHours(hours)
-                                .plusMinutes(minutes)
-                                .plusSeconds(seconds)
+                        when (durationParts.size) {
+                            0 -> duration = Duration.ofMillis(0)
+                            1 -> duration = Duration.ofSeconds(durationParts[0].toLong())
+                            2 -> duration = Duration.ofMinutes(durationParts[0].toLong()).plusSeconds(durationParts[1].toLong())
+                            else -> duration = Duration.ofHours(durationParts[0].toLong()).plusMinutes(durationParts[1].toLong()).plusSeconds(durationParts[2].toLong())
+                        }
                     }
                     null to "enclosure" -> audioUri = parser.getAttributeValue(null, "url")
                 }

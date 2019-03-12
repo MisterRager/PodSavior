@@ -40,6 +40,7 @@ constructor(
                 holder.heldView.title.text = episode.name
                 holder.heldView.summary.text =
                         episode.descriptionMarkup?.let(Html::fromHtml) ?: episode.description ?: ""
+                holder.heldView.duration.text = episode.duration.toString()
             }
         }
     }

@@ -19,4 +19,5 @@ class EpisodeRow : ConstraintLayout {
     val episodeIcon: ImageView by lazy { findViewById<ImageView>(R.id.episode_icon) }
     val title: TextView by lazy { findViewById<TextView>(R.id.episode_title) }
     val summary: TextView by lazy { findViewById<TextView>(R.id.episode_summary) }
+    val duration: TextView by lazy { findViewById<TextView>(R.id.episode_duration) }
 }
