@@ -22,7 +22,7 @@ object NetModule {
             .add(KotlinJsonAdapterFactory())
             .build()
 
-    @[Provides JvmStatic]
+    @[Provides JvmStatic Reusable]
     fun providesOkHttpClient(): OkHttpClient = OkHttpClient.Builder().build()
 
     @[Provides JvmStatic Reusable]

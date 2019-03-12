@@ -39,6 +39,24 @@ class FeedParser(private val parser: XmlPullParser, private val series: Series) 
                             "itunes" to "author" -> artistName = parser.nextText()
                             "itunes" to "summary" -> description = description ?: parser.nextText()
                             "itunes" to "image" -> iconPath = parser.nextText()
+                            null to "image" -> {
+                                var tagType = parser.nextTag()
+
+                                do {
+                                    if (tagType == XmlPullParser.START_TAG) {
+                                        when (parser.name) {
+                                            "url" -> {
+                                                iconPath = if (iconPath.isNullOrBlank()) {
+                                                    parser.nextText()
+                                                } else {
+                                                    iconPath
+                                                }
+                                            }
+                                        }
+                                    }
+                                    tagType = parser.next()
+                                } while (tagType != XmlPullParser.END_TAG || parser.name != "image")
+                            }
                             "atom10" to "link" -> {
                                 if ("self" == parser.getAttributeValue(null, "rel")) {
                                     feedUri =
