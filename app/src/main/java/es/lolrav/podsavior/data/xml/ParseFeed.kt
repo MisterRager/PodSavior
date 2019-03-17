@@ -1,11 +1,11 @@
 package es.lolrav.podsavior.data.xml
 
 import android.util.Log
-import es.lolrav.podsavior.data.time.PatternMatchingParser
+import es.lolrav.podsavior.data.time.TimeParsingModule
 import es.lolrav.podsavior.database.entity.Episode
 import es.lolrav.podsavior.database.entity.Series
-import org.threeten.bp.Duration
-import org.threeten.bp.Instant
+import org.threeten.bp.*
+import org.threeten.bp.format.DateTimeFormatter
 import org.xmlpull.v1.XmlPullParser
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -15,7 +15,6 @@ typealias Or<A, B> = Pair<A?, B?>
 
 class ParseFeed(
         private val parser: XmlPullParser,
-        private val timeParser: PatternMatchingParser,
         private val series: Series
 ) {
     fun parse(inputStream: InputStream): Sequence<Or<Series, Episode>> =
@@ -113,6 +112,12 @@ class ParseFeed(
         var duration: Duration? = null
         var publishTime: Instant? = null
 
+        val timeRegex =
+                "([A-Z][a-z]+), ([0-9]+) ([A-Z][a-z]+) ([0-9]+) ([0-9]+):([0-9]+):([0-9]+) (.*)"
+                        .toRegex()
+
+        val withoutTimezone = "(.*) ([A-Z0-9:+-]+)$".toRegex()
+
         while (eventType != XmlPullParser.END_TAG || currentName != "item") {
             if (eventType == XmlPullParser.START_TAG) {
 
@@ -132,10 +137,17 @@ class ParseFeed(
                             else -> duration = Duration.ofHours(durationParts[0].toLong()).plusMinutes(durationParts[1].toLong()).plusSeconds(durationParts[2].toLong())
                         }
                     }
-                    null to "pubDate" ->
-                        publishTime = timeParser.parse(parser.nextText().trim(), Instant.FROM)
-                    null to "enclosure" ->
-                        audioUri = parser.getAttributeValue(null, "url").trim()
+                    null to "pubDate" -> {
+                        // Mon, 11 Jun 2018 13:03:00 PDT
+                        val timeStr = parser.nextText().trim()
+
+                        publishTime = if (timeStr.matches(".* [A-Z]+$".toRegex())) {
+                            TimeParsingModule.providesPodCastFormatter()
+                                    .parse(timeStr, ZonedDateTime.FROM).toInstant()
+                        } else {
+                            DateTimeFormatter.RFC_1123_DATE_TIME.parse(timeStr, OffsetDateTime.FROM).toInstant()
+                        }
+                    }
                 }
             }
 

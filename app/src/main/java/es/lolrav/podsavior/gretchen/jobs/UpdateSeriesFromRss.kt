@@ -50,46 +50,31 @@ class UpdateSeriesFromRss(
         return (seriesUids.let(seriesDao::findByUid))
                 .take(1) // Don't need updates, just doing one
                 .flatMapIterable(Functions.identity())
-                .flatMap { series ->
+                .flatMapCompletable { series ->
                     fetchFeed(requestBuilder(series.feedUri).build())
                             .map(Pair<Call, Response>::second)
                             .flatMapMaybe { response -> Maybe.fromCallable { response.body() } }
                             .map { body -> body.source().inputStream() }
                             .retry(5)
-                            .map(ParseFeed(parser, dateParser, series)::parse)
-                            .flatMapObservable { seriesOrEpisodes ->
-                                Observable
-                                        .unsafeCreate<Or<Series, Episode>> {
-                                            seriesOrEpisodes.forEach(it::onNext)
+                            .map(ParseFeed(parser, series)::parse)
+                            .flatMapCompletable { seriesOrEpisodes ->
+                                Completable.merge {
+                                    try {
+                                        seriesOrEpisodes.forEach { (series, episode) ->
+                                            if (series != null) {
+                                                seriesDao.save(series)
+                                            } else if (episode != null) {
+                                                episodeDao.save(episode)
+                                            }
                                         }
-                                        .publish { orStream ->
-                                            Completable.mergeArray(
-                                                    orStream
-                                                            .filter { (series, _) -> series != null }
-                                                            .map { (series, _) -> series!! }
-                                                            .flatMapCompletable { seriesDao.save(it) },
-                                                    orStream
-                                                            .filter { (_, episode) -> episode != null }
-                                                            .map { (_, episode) -> episode!! }
-                                                            .window(30)
-                                                            .flatMapCompletable {
-                                                                it.toList()
-                                                                        .map(List<Episode>::toTypedArray)
-                                                                        .flatMapCompletable(episodeDao::save)
-                                                            }
-                                            ).toObservable<Any>().materialize()
-                                        }
+                                    } catch (t: Throwable) {
+                                        it.onError(t)
+                                    }
+                                }
                             }
-                            .toFlowable(BackpressureStrategy.BUFFER)
                 }
-                .flatMap { notification ->
-                    when {
-                        notification.isOnComplete -> Flowable.just(ListenableWorker.Result.success())
-                        notification.isOnError -> Flowable.just(ListenableWorker.Result.failure())
-                        else -> Flowable.empty()
-                    }
-                }
-                .first(ListenableWorker.Result.failure())
+                .toSingleDefault(ListenableWorker.Result.success())
+                .onErrorReturnItem(ListenableWorker.Result.failure())
                 .let(::RxListenableFuture)
     }
 

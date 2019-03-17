@@ -24,7 +24,7 @@ class ParseFeedTest {
     @Before
     fun setup() {
         DaggerFeedParserComponent.builder().build().inject(this)
-        parseOperator = ParseFeed(parser, timeParser, series)
+        parseOperator = ParseFeed(parser, series)
     }
 
     @Test

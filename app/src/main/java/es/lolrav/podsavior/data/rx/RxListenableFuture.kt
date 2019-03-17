@@ -31,7 +31,10 @@ class RxListenableFuture<T>(
 
         bus.firstOrError()
                 .observeOn(Schedulers.from(executor))
-                .subscribe { _ -> listener.run() }
+                .subscribe(
+                        { listener.run() },
+                        { err ->
+                        })
                 .let(disposable::add)
     }
 
