@@ -125,8 +125,6 @@ class ParseFeed(
                 "[A-Z][a-z]+, ([0-9]+) ([A-Z][a-z]+) ([0-9]+) ([0-9]+):([0-9]+):([0-9]+) (.*)"
                         .toRegex()
 
-        val withoutTimezone = "(.*) ([A-Z0-9:+-]+)$".toRegex()
-
         while (eventType != XmlPullParser.END_TAG || currentName != "item") {
             if (eventType == XmlPullParser.START_TAG) {
 

@@ -10,7 +10,6 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
-import dagger.Lazy
 import es.lolrav.podsavior.di.has.appComponent
 import es.lolrav.podsavior.view.series.di.SeriesComponent
 import es.lolrav.podsavior.view.series.view.EpisodeAdapter
@@ -59,7 +58,8 @@ class SeriesFragment : Fragment() {
     private val seriesUid: String get() = arguments!!.getString("series_uid")!!
 
     private val component: SeriesComponent by lazy {
-        context!!.appComponent!!.buildSeriesComponent()
+        context!!.appComponent!!.plusSeriesComponent()
+                .fragment(this)
                 .uid(seriesUid)
                 .build()
     }

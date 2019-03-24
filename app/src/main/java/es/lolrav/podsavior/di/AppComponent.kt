@@ -34,7 +34,7 @@ interface AppComponent {
 
     fun buildAddSeriesComponent(): AddSeriesComponent.Builder
     fun buildHomeComponent(): HomeComponent.Builder
-    fun buildSeriesComponent(): SeriesComponent.Builder
+    fun plusSeriesComponent(): SeriesComponent.Builder
 
     fun inject(fetchFeed: FetchFeed)
     fun inject(worker: UpdateSeriesFromRss)

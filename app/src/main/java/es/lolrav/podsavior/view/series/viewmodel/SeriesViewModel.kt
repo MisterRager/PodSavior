@@ -3,6 +3,9 @@ package es.lolrav.podsavior.view.series.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import dagger.Reusable
 import es.lolrav.podsavior.android.toLiveData
 import es.lolrav.podsavior.database.dao.EpisodeDao
 import es.lolrav.podsavior.database.dao.SeriesDao
@@ -11,17 +14,16 @@ import es.lolrav.podsavior.database.entity.Series
 import es.lolrav.podsavior.gretchen.FetchFeed
 import es.lolrav.podsavior.view.series.di.SeriesScope
 import es.lolrav.podsavior.view.series.di.SeriesUid
+import java.lang.UnsupportedOperationException
 import javax.inject.Inject
 
-@SeriesScope
-class SeriesViewModel
-@Inject
-constructor(
+class SeriesViewModel(
         application: Application,
         @SeriesUid private val seriesUid: String,
         seriesDao: SeriesDao,
         episodeDao: EpisodeDao
 ) : AndroidViewModel(application) {
+
     val series: LiveData<Series> by lazy {
         seriesDao.findByUid(seriesUid)
                 .map(List<Series>::first)
@@ -32,5 +34,25 @@ constructor(
 
     fun manuallyRefreshSeries() {
         FetchFeed.fetchSeries(getApplication(), seriesUid)
+    }
+
+    @Reusable
+    class Builder
+    @Inject
+    constructor(
+            private val application: Application,
+            @SeriesUid private val seriesUid: String,
+            private val seriesDao: SeriesDao,
+            private val episodeDao: EpisodeDao
+    ) : ViewModelProvider.Factory {
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            if (modelClass == SeriesViewModel::class.java) {
+                // We checked above
+                @Suppress("UNCHECKED_CAST")
+                return SeriesViewModel(application, seriesUid, seriesDao, episodeDao) as T
+            }
+            throw UnsupportedOperationException(
+                    "Cannot construct unknown class ${modelClass.simpleName}")
+        }
     }
 }
