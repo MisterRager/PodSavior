@@ -73,6 +73,13 @@ class ParseFeed(
                                                     .trim()
                                 }
                             }
+                            "atom" to "link" -> {
+                                if ("self" == parser.getAttributeValue(null, "rel")) {
+                                    feedUri =
+                                            parser.getAttributeValue(null, "href")
+                                                    .trim()
+                                }
+                            }
                             null to "item" -> {
                                 // Dump the series data into the stream
                                 if (hasStartedItems.compareAndSet(false, true)) {
