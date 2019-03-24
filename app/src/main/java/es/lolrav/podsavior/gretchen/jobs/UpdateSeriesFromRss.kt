@@ -7,15 +7,17 @@ import androidx.work.*
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.Lazy
 import es.lolrav.podsavior.data.rx.RxListenableFuture
-import es.lolrav.podsavior.data.time.PatternMatchingParser
-import es.lolrav.podsavior.data.xml.ParseFeed
 import es.lolrav.podsavior.data.xml.Or
+import es.lolrav.podsavior.data.xml.ParseFeed
 import es.lolrav.podsavior.database.dao.EpisodeDao
 import es.lolrav.podsavior.database.dao.SeriesDao
 import es.lolrav.podsavior.database.entity.Episode
 import es.lolrav.podsavior.database.entity.Series
 import es.lolrav.podsavior.di.has.appComponent
-import io.reactivex.*
+import io.reactivex.Completable
+import io.reactivex.Maybe
+import io.reactivex.Single
+import io.reactivex.SingleEmitter
 import io.reactivex.internal.functions.Functions
 import okhttp3.*
 import org.xmlpull.v1.XmlPullParser
@@ -38,8 +40,6 @@ class UpdateSeriesFromRss(
     lateinit var okHttp: Lazy<OkHttpClient>
     @Inject
     lateinit var parser: XmlPullParser
-    @Inject
-    lateinit var dateParser: PatternMatchingParser
 
     override fun startWork(): ListenableFuture<Result> {
         // Make sure DI is done
@@ -50,25 +50,23 @@ class UpdateSeriesFromRss(
         return (seriesUids.let(seriesDao::findByUid))
                 .take(1) // Don't need updates, just doing one
                 .flatMapIterable(Functions.identity())
-                .flatMapCompletable { series ->
-                    fetchFeed(requestBuilder(series.feedUri).build())
+                .flatMapCompletable { fetchSeries ->
+                    fetchFeed(requestBuilder(fetchSeries.feedUri).build())
                             .map(Pair<Call, Response>::second)
                             .flatMapMaybe { response -> Maybe.fromCallable { response.body() } }
                             .map { body -> body.source().inputStream() }
                             .retry(5)
-                            .map(ParseFeed(parser, series)::parse)
+                            .map(ParseFeed(parser, fetchSeries)::parse)
                             .flatMapCompletable { seriesOrEpisodes ->
                                 Completable.merge {
                                     try {
-                                        seriesOrEpisodes.forEach { (series, episode) ->
-                                            if (series != null) {
-                                                seriesDao.save(series)
-                                            } else if (episode != null) {
-                                                episodeDao.save(episode)
-                                            }
-                                        }
+                                        seriesOrEpisodes.forEach(this::saveSeriesOrEpisode)
                                     } catch (t: Throwable) {
-                                        it.onError(t)
+                                        // Be lenient... it's someone else's XML
+                                        //it.onError(t)
+                                        Log.w(this::class.java.simpleName,
+                                                "Error parsing for series ${fetchSeries.name}",
+                                                t)
                                     }
                                 }
                             }
@@ -76,6 +74,15 @@ class UpdateSeriesFromRss(
                 .toSingleDefault(ListenableWorker.Result.success())
                 .onErrorReturnItem(ListenableWorker.Result.failure())
                 .let(::RxListenableFuture)
+    }
+
+    private fun saveSeriesOrEpisode(or: Or<Series, Episode>) {
+        val (series, episode) = or
+
+        when {
+            series != null -> seriesDao.save(series)
+            episode != null -> episodeDao.save(episode)
+        }
     }
 
     private fun fetchFeed(request: Request): Single<Pair<Call, Response>> =

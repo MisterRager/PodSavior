@@ -1,7 +1,6 @@
 package es.lolrav.podsavior.data.xml
 
 import android.util.Log
-import es.lolrav.podsavior.data.time.TimeParsingModule
 import es.lolrav.podsavior.database.entity.Episode
 import es.lolrav.podsavior.database.entity.Series
 import org.threeten.bp.*
@@ -9,6 +8,7 @@ import org.threeten.bp.format.DateTimeFormatter
 import org.xmlpull.v1.XmlPullParser
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 typealias Or<A, B> = Pair<A?, B?>
@@ -26,7 +26,7 @@ class ParseFeed(
 
                 // Start reading
                 parser.nextTag()
-                //parser.require(XmlPullParser.START_TAG, null, "rss")
+                parser.require(XmlPullParser.START_TAG, null, "rss")
 
                 var eventType = parser.eventType
 
@@ -113,7 +113,7 @@ class ParseFeed(
         var publishTime: Instant? = null
 
         val timeRegex =
-                "([A-Z][a-z]+), ([0-9]+) ([A-Z][a-z]+) ([0-9]+) ([0-9]+):([0-9]+):([0-9]+) (.*)"
+                "[A-Z][a-z]+, ([0-9]+) ([A-Z][a-z]+) ([0-9]+) ([0-9]+):([0-9]+):([0-9]+) (.*)"
                         .toRegex()
 
         val withoutTimezone = "(.*) ([A-Z0-9:+-]+)$".toRegex()
@@ -122,7 +122,7 @@ class ParseFeed(
             if (eventType == XmlPullParser.START_TAG) {
 
                 when (parser.prefix to parser.name) {
-                    null to "title" -> name = parser.nextText()
+                    null to "title" -> name = parser.nextText().trim()
                     "itunes" to "title" -> name = name ?: parser.nextText().trim()
                     "itunes" to "summary" -> description = parser.nextText().trim()
                     "content" to "encoded" -> descriptionMarkup = parser.nextText().trim()
@@ -142,12 +142,24 @@ class ParseFeed(
                         val timeStr = parser.nextText().trim()
 
                         publishTime = if (timeStr.matches(".* [A-Z]+$".toRegex())) {
-                            TimeParsingModule.providesPodCastFormatter()
-                                    .parse(timeStr, ZonedDateTime.FROM).toInstant()
+                            timeRegex.matchEntire(timeStr).let { timeMatches ->
+                                LocalDate
+                                        .of(
+                                                timeMatches!!.groupValues[3].toInt(),
+                                                monthNumber(timeMatches.groupValues[2]),
+                                                timeMatches.groupValues[1].toInt())
+                                        .atTime(
+                                                timeMatches.groupValues[4].toInt(),
+                                                timeMatches.groupValues[5].toInt(),
+                                                timeMatches.groupValues[6].toInt())
+                                        .atZone(DateTimeUtils.toZoneId(TimeZone.getTimeZone(timeMatches.groupValues[7])))
+                                        .toInstant()
+                            }
                         } else {
                             DateTimeFormatter.RFC_1123_DATE_TIME.parse(timeStr, OffsetDateTime.FROM).toInstant()
                         }
                     }
+                    null to "enclosure" -> audioUri = parser.getAttributeValue(null, "url").trim()
                 }
             }
 
@@ -169,8 +181,25 @@ class ParseFeed(
                             seriesUid = series.uid,
                             publishTime = publishTime))
         } else {
-            //Log.w(javaClass.simpleName, "Did not find enough fields for item \"$name\"")
+            Log.w(javaClass.simpleName, "Did not find enough fields for item \"$name\"")
         }
     }
+
+    private fun monthNumber(name: String): Int =
+            when (name) {
+                "Jan" -> 1
+                "Feb" -> 2
+                "Mar" -> 3
+                "Apr" -> 4
+                "May" -> 5
+                "Jun" -> 6
+                "Jul" -> 7
+                "Aug" -> 8
+                "Sep" -> 9
+                "Oct" -> 10
+                "Nov" -> 11
+                "Dec" -> 12
+                else -> -1
+            }
 }
 

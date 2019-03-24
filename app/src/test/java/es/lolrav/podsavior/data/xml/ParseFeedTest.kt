@@ -4,7 +4,7 @@ import es.lolrav.podsavior.data.time.PatternMatchingParser
 import es.lolrav.podsavior.database.entity.Series
 import es.lolrav.podsavior.di.DaggerFeedParserComponent
 import es.lolrav.podsavior.di.SeriesRandom
-import org.junit.Assert.assertFalse
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.xmlpull.v1.XmlPullParser
@@ -16,8 +16,6 @@ class ParseFeedTest {
     lateinit var series: Series
     @Inject
     lateinit var parser: XmlPullParser
-    @Inject
-    lateinit var timeParser: PatternMatchingParser
 
     private lateinit var parseOperator: ParseFeed
 
@@ -32,6 +30,17 @@ class ParseFeedTest {
         val results = parseOperator.parse(americaXml).toList()
 
         assertFalse(results.isEmpty())
+
+        val series = results.first().first
+        assertNotNull(series)
+        assertEquals("Pod Save America", series!!.name)
+        assertEquals(
+                "https://content.production.cdn.art19.com/images/9f/11/57/4c/9f11574c-4033-45aa-b8d3-0b204258ab58/5e963f8f8811e208b1a90c91507a0f7880c7b861bf81c290e44c193e891a507bbe99798dd7ed0cd795a4fede54560f167fa023553f66c29ff86bf9f8322c7f83.jpeg",
+                series.iconPath)
+
+        val episodes = results.drop(1).map { it.second!! }
+
+        assertTrue(episodes.isNotEmpty())
     }
 
     @Test
