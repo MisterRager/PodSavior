@@ -120,9 +120,4 @@ dependencies {
 
     // Test XmlPullParser
     testImplementation "net.sf.kxml:kxml2:2.3.0"
-
-
-    // Required for instrumented tests
-    androidTestImplementation "com.android.support:support-annotations:$support_annotations_version"
-    androidTestImplementation "com.android.support.test:runner:$support_test_runner_version"
 }
