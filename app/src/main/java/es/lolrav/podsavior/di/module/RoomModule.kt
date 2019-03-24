@@ -23,6 +23,7 @@ object RoomModule {
             @Named(APP_CONTEXT) context: Context,
             @Named("database-name") dbName: String
     ): PodDatabase = Room.databaseBuilder(context, PodDatabase::class.java, dbName)
+            .fallbackToDestructiveMigration()
             .build()
 
     @[Provides JvmStatic Reusable]
