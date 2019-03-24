@@ -12,8 +12,7 @@ import es.lolrav.podsavior.database.dao.SeriesDao
 import es.lolrav.podsavior.database.entity.Episode
 import es.lolrav.podsavior.database.entity.Series
 import es.lolrav.podsavior.gretchen.FetchFeed
-import es.lolrav.podsavior.view.series.di.SeriesScope
-import es.lolrav.podsavior.view.series.di.SeriesUid
+import es.lolrav.podsavior.di.qualifiers.SeriesUid
 import java.lang.UnsupportedOperationException
 import javax.inject.Inject
 

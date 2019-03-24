@@ -12,6 +12,7 @@ import es.lolrav.podsavior.gretchen.FetchFeed
 import es.lolrav.podsavior.gretchen.jobs.UpdateSeriesFromRss
 import es.lolrav.podsavior.view.addseries.di.AddSeriesComponent
 import es.lolrav.podsavior.view.home.di.HomeComponent
+import es.lolrav.podsavior.view.player.di.PlayerComponent
 import es.lolrav.podsavior.view.series.di.SeriesComponent
 import javax.inject.Singleton
 
@@ -32,9 +33,10 @@ interface AppComponent {
         fun build(): AppComponent
     }
 
-    fun buildAddSeriesComponent(): AddSeriesComponent.Builder
-    fun buildHomeComponent(): HomeComponent.Builder
+    fun plusAddSeriesComponent(): AddSeriesComponent.Builder
+    fun plusHomeComponent(): HomeComponent.Builder
     fun plusSeriesComponent(): SeriesComponent.Builder
+    fun plusPlayerComponent(): PlayerComponent.Builder
 
     fun inject(fetchFeed: FetchFeed)
     fun inject(worker: UpdateSeriesFromRss)

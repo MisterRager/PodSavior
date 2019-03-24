@@ -1,4 +1,4 @@
-package es.lolrav.podsavior.view.series.di
+package es.lolrav.podsavior.view.player.di
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -6,20 +6,20 @@ import androidx.lifecycle.ViewModelProviders
 import dagger.Module
 import dagger.Provides
 import dagger.Reusable
-import es.lolrav.podsavior.di.qualifiers.SeriesUid
-import es.lolrav.podsavior.view.series.viewmodel.SeriesViewModel
+import es.lolrav.podsavior.di.qualifiers.EpisodeUid
+import es.lolrav.podsavior.view.player.viewmodel.PlayerViewModel
 
 @Module
-object SeriesModule {
+object PlayerModule {
     @[JvmStatic Provides Reusable]
     fun providesViewModelProvider(
             fragment: Fragment,
-            factory: SeriesViewModel.Builder
+            factory: PlayerViewModel.Builder
     ): ViewModelProvider = ViewModelProviders.of(fragment, factory)
 
     @[JvmStatic Provides Reusable]
     fun providesViewModel(
-            @SeriesUid seriesUid: String,
+            @EpisodeUid episodeUid: String,
             vmp: ViewModelProvider
-    ): SeriesViewModel = vmp[seriesUid, SeriesViewModel::class.java]
+    ): PlayerViewModel = vmp[episodeUid, PlayerViewModel::class.java]
 }

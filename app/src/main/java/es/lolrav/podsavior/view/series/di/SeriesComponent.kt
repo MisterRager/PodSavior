@@ -3,6 +3,7 @@ package es.lolrav.podsavior.view.series.di
 import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
+import es.lolrav.podsavior.di.qualifiers.SeriesUid
 import es.lolrav.podsavior.view.series.SeriesFragment
 
 @Subcomponent(modules = [SeriesModule::class])

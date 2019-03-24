@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.Reusable
 import es.lolrav.podsavior.database.PodDatabase
 import es.lolrav.podsavior.database.dao.EpisodeDao
+import es.lolrav.podsavior.database.dao.ProgressDao
 import es.lolrav.podsavior.database.dao.SeriesDao
 import javax.inject.Named
 import javax.inject.Singleton
@@ -29,4 +30,7 @@ object RoomModule {
 
     @[Provides JvmStatic Reusable]
     fun provideSeriesDao(podDatabase: PodDatabase): SeriesDao = podDatabase.seriesDao
+
+    @[Provides JvmStatic Reusable]
+    fun provideProgressDao(podDatabase: PodDatabase): ProgressDao = podDatabase.progressDao
 }

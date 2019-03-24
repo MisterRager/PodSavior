@@ -1,4 +1,4 @@
-package es.lolrav.podsavior.view.series.di
+package es.lolrav.podsavior.di.qualifiers
 
 import javax.inject.Qualifier
 

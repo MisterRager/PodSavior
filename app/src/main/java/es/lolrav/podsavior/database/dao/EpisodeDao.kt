@@ -12,4 +12,7 @@ interface EpisodeDao : ItemInsertAndDelete<Episode> {
 
     @Query("SELECT * FROM ${Episode.TABLE_NAME} WHERE seriesUid = :seriesUid")
     fun getBySeries(seriesUid: String): Flowable<List<Episode>>
+
+    @Query("SELECT * FROM ${Episode.TABLE_NAME} WHERE uid = :uid LIMIT 1")
+    fun getByUid(uid: String): Flowable<Episode>
 }

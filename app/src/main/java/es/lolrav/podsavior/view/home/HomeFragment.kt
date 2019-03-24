@@ -66,6 +66,6 @@ class HomeFragment : Fragment(), HasHomeComponent {
     }
 
     override val homeComponent: HomeComponent by lazy {
-        context!!.appComponent!!.buildHomeComponent().build()
+        context!!.appComponent!!.plusHomeComponent().build()
     }
 }
