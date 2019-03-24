@@ -46,8 +46,8 @@ class SeriesFragment : Fragment() {
                 picasso.load(series.iconPath).into(view.coverImage)
             }
 
-            view.episodes.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
             view.episodes.adapter = adapter
+            view.episodes.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
 
             viewModel.episodes.observe(viewLifecycleOwner, Observer { episodes ->
                 adapter.setEpisodes(episodes)

@@ -13,13 +13,15 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 typealias Or<A, B> = Pair<A?, B?>
 
+private val TAG = ParseFeed::class.java.simpleName
+
 class ParseFeed(
         private val parser: XmlPullParser,
         private val series: Series
 ) {
     fun parse(inputStream: InputStream): Sequence<Or<Series, Episode>> =
             sequence {
-                Log.v(javaClass.simpleName, "Start parsing Feed for ${series.name}")
+                Log.v(TAG, "Start parsing Feed for ${series.name}")
 
                 parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true)
                 parser.setInput(inputStream.bufferedReader(Charset.forName("UTF-8")))
@@ -45,7 +47,7 @@ class ParseFeed(
                             null to "description" -> description = parser.nextText()
                             "itunes" to "author" -> artistName = parser.nextText()
                             "itunes" to "summary" -> description = description ?: parser.nextText()
-                            "itunes" to "image" -> iconPath = parser.nextText()
+                            "itunes" to "image" -> iconPath = parser.getAttributeValue(null, "href")
                             null to "image" -> {
                                 var tagType = parser.nextTag()
 
@@ -74,7 +76,7 @@ class ParseFeed(
                             null to "item" -> {
                                 // Dump the series data into the stream
                                 if (hasStartedItems.compareAndSet(false, true)) {
-                                    Log.v(javaClass.simpleName, "Yield Updated Series [$title]!")
+                                    Log.v(TAG, "Yield Updated Series [$title]!")
                                     yield(
                                             Series(
                                                     uid = series.uid,
@@ -168,7 +170,7 @@ class ParseFeed(
         }
 
         if (name != null && audioUri != null && duration != null && publishTime != null) {
-            Log.v(javaClass.simpleName, "Yield Updated Episode [$name]!")
+            Log.v(TAG, "Yield Updated Episode [$name]!")
             yield(
                     null to Episode(
                             uid = audioUri,
@@ -181,7 +183,7 @@ class ParseFeed(
                             seriesUid = series.uid,
                             publishTime = publishTime))
         } else {
-            Log.w(javaClass.simpleName, "Did not find enough fields for item \"$name\"")
+            Log.w(TAG, "Did not find enough fields for item \"$name\"")
         }
     }
 

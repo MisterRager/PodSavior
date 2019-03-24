@@ -58,23 +58,33 @@ class UpdateSeriesFromRss(
                             .retry(5)
                             .map(ParseFeed(parser, fetchSeries)::parse)
                             .flatMapCompletable { seriesOrEpisodes ->
-                                Completable.merge {
-                                    try {
-                                        seriesOrEpisodes.forEach(this::saveSeriesOrEpisode)
-                                    } catch (t: Throwable) {
-                                        // Be lenient... it's someone else's XML
-                                        //it.onError(t)
-                                        Log.w(this::class.java.simpleName,
-                                                "Error parsing for series ${fetchSeries.name}",
-                                                t)
-                                    }
-                                }
+                                val (seriesList, episodeList) = seriesOrEpisodes.toLists()
+
+                                Completable.mergeArray(
+                                        seriesDao.save(*seriesList.toTypedArray()),
+                                        episodeDao.save(*episodeList.toTypedArray()))
                             }
                 }
                 .toSingleDefault(ListenableWorker.Result.success())
                 .onErrorReturnItem(ListenableWorker.Result.failure())
                 .let(::RxListenableFuture)
     }
+
+    private fun Sequence<Or<Series, Episode>>.toLists(): Pair<List<Series>, List<Episode>> =
+            (mutableListOf<Series>() to mutableListOf<Episode>()).let { updateResults ->
+                try {
+                    fold(updateResults) { results, (series, episode) ->
+                        series?.let(results.first::add)
+                        episode?.let(results.second::add)
+                        results
+                    }
+                } catch (t: Throwable) {
+                    // Be lenient... it's someone else's XML
+                    //it.onError(t)
+                    Log.w(this::class.java.simpleName, "Error during series parsing", t)
+                    updateResults
+                }
+            }
 
     private fun saveSeriesOrEpisode(or: Or<Series, Episode>) {
         val (series, episode) = or
