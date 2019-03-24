@@ -48,6 +48,7 @@ class PlayerViewModel(
 
     val image: LiveData<String?> by episodeLazy(Episode::imageUri)
     val streamUri: LiveData<String> by episodeLazy(Episode::episodeUri)
+    val duration: LiveData<Duration> by episodeLazy(Episode::duration)
 
     val currentPosition: LiveData<Duration> by lazy {
         progress.map(Progress::duration).distinctUntilChanged().toLiveData()
