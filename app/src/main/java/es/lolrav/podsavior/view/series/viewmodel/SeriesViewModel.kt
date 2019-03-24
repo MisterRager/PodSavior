@@ -11,7 +11,7 @@ import es.lolrav.podsavior.database.dao.EpisodeDao
 import es.lolrav.podsavior.database.dao.SeriesDao
 import es.lolrav.podsavior.database.entity.Episode
 import es.lolrav.podsavior.database.entity.Series
-import es.lolrav.podsavior.gretchen.FetchFeed
+import es.lolrav.podsavior.gretchen.WorkDispatcher
 import es.lolrav.podsavior.di.qualifiers.SeriesUid
 import java.lang.UnsupportedOperationException
 import javax.inject.Inject
@@ -32,8 +32,11 @@ class SeriesViewModel(
     val episodes: LiveData<List<Episode>> by lazy { episodeDao.getBySeries(seriesUid).toLiveData() }
 
     fun manuallyRefreshSeries() {
-        FetchFeed.fetchSeries(getApplication(), seriesUid)
+        WorkDispatcher.fetchSeries(getApplication(), seriesUid)
     }
+
+    fun downloadEpisode(episodeUid: String) =
+            WorkDispatcher.fetchEpisode(getApplication(), episodeUid)
 
     @Reusable
     class Builder

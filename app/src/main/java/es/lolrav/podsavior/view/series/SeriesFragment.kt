@@ -10,11 +10,14 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
+import es.lolrav.podsavior.android.toLiveData
+import es.lolrav.podsavior.database.entity.Episode
 import es.lolrav.podsavior.di.has.appComponent
 import es.lolrav.podsavior.view.series.di.SeriesComponent
 import es.lolrav.podsavior.view.series.view.EpisodeAdapter
 import es.lolrav.podsavior.view.series.view.SeriesHome
 import es.lolrav.podsavior.view.series.viewmodel.SeriesViewModel
+import io.reactivex.BackpressureStrategy
 import javax.inject.Inject
 
 class SeriesFragment : Fragment() {
@@ -52,6 +55,15 @@ class SeriesFragment : Fragment() {
                 adapter.setEpisodes(episodes)
                 adapter.notifyDataSetChanged()
             })
+
+            adapter.onClickDownload
+                    .toFlowable(BackpressureStrategy.LATEST)
+                    .map(Episode::uid)
+                    .distinctUntilChanged()
+                    .toLiveData()
+                    .observe(viewLifecycleOwner, Observer { uid ->
+                        viewModel.downloadEpisode(episodeUid = uid)
+                    })
         })
     }
 

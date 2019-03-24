@@ -9,6 +9,9 @@ import com.squareup.picasso.Picasso
 import dagger.Reusable
 import es.lolrav.podsavior.database.entity.Episode
 import es.lolrav.podsavior.view.common.BasicViewHolder
+import io.reactivex.Observable
+import io.reactivex.subjects.PublishSubject
+import io.reactivex.subjects.Subject
 import org.threeten.bp.Duration
 import org.threeten.bp.Instant
 import org.threeten.bp.MonthDay
@@ -27,12 +30,25 @@ constructor(
         private val picasso: Picasso
 ) : RecyclerView.Adapter<BasicViewHolder<EpisodeRow>>() {
     private val episodesLock: Lock by lazy { ReentrantLock() }
-    private val episodes: MutableList<Episode> = mutableListOf()
+    private val episodes: MutableList<Episode> by lazy { mutableListOf<Episode>() }
+    private val onClickDownloadSubject: Subject<Episode> by lazy {
+        PublishSubject.create<Episode>()
+    }
+
+    val onClickDownload: Observable<Episode> get() = onClickDownloadSubject.hide()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BasicViewHolder<EpisodeRow> =
-            BasicViewHolder(EpisodeRow(parent.context).apply {
-                layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-            })
+            BasicViewHolder(
+                    EpisodeRow(parent.context).apply {
+                        layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                    }
+            ).apply {
+                heldView.subscribe.setOnClickListener {
+                    episodes.getOrNull(adapterPosition)
+                            ?.takeIf { it.onDiskPath == null }
+                            ?.let(onClickDownloadSubject::onNext)
+                }
+            }
 
     override fun getItemCount(): Int = episodes.size
 

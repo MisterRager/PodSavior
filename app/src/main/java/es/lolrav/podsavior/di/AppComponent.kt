@@ -5,7 +5,8 @@ import dagger.BindsInstance
 import dagger.Component
 import es.lolrav.podsavior.data.time.TimeParsingModule
 import es.lolrav.podsavior.di.module.*
-import es.lolrav.podsavior.gretchen.FetchFeed
+import es.lolrav.podsavior.gretchen.WorkDispatcher
+import es.lolrav.podsavior.gretchen.jobs.DownloadEpisode
 import es.lolrav.podsavior.gretchen.jobs.UpdateSeriesFromRss
 import es.lolrav.podsavior.view.addseries.di.AddSeriesComponent
 import es.lolrav.podsavior.view.home.di.HomeComponent
@@ -36,6 +37,7 @@ interface AppComponent {
     fun plusSeriesComponent(): SeriesComponent.Builder
     fun plusPlayerComponent(): PlayerComponent.Builder
 
-    fun inject(fetchFeed: FetchFeed)
+    fun inject(workDispatcher: WorkDispatcher)
     fun inject(worker: UpdateSeriesFromRss)
+    fun inject(downloadEpisode: DownloadEpisode)
 }

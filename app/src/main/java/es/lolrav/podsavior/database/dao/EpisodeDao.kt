@@ -15,4 +15,7 @@ interface EpisodeDao : ItemInsertAndDelete<Episode> {
 
     @Query("SELECT * FROM ${Episode.TABLE_NAME} WHERE uid = :uid LIMIT 1")
     fun getByUid(uid: String): Flowable<Episode>
+
+    @Query("SELECT * FROM ${Episode.TABLE_NAME} WHERE uid IN(:uid)")
+    fun getListByUid(vararg uid: String): Flowable<List<Episode>>
 }

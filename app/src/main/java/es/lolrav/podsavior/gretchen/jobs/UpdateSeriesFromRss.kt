@@ -168,9 +168,9 @@ class UpdateSeriesFromRss(
                 inputs
                         .asSequence()
                         .flatMap {
-                            (it.getStringArray(ARG_SERIES_UID) ?: emptyArray()).asSequence()
+                            it.getStringArray(ARG_SERIES_UID)?.asSequence() ?: emptySequence()
                         }
-                        .toList()
+                        .toSet()
                         .toTypedArray()
                         .let(UpdateSeriesFromRss.Companion::buildData)
     }
@@ -186,8 +186,11 @@ class UpdateSeriesFromRss(
                         .build()
 
 
-        fun setupRequestBuilder(vararg seriesUid: String): OneTimeWorkRequest.Builder =
+        private fun setupRequestBuilder(vararg seriesUid: String): OneTimeWorkRequest.Builder =
                 buildData(*seriesUid)
                         .let(OneTimeWorkRequestBuilder<UpdateSeriesFromRss>()::setInputData)
+
+        fun buildRequest(seriesUid: String): OneTimeWorkRequest =
+                setupRequestBuilder(seriesUid).setInputMerger(InputMerger::class.java).build()
     }
 }

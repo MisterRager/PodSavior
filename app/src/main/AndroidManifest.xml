@@ -13,7 +13,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <service
-            android:name=".gretchen.FetchFeed"
+            android:name=".gretchen.WorkDispatcher"
             android:exported="false"></service>
 
         <activity android:name=".HostActivity">
