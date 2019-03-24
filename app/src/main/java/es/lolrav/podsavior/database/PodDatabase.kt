@@ -9,7 +9,7 @@ import es.lolrav.podsavior.database.entity.Episode
 import es.lolrav.podsavior.database.entity.Progress
 import es.lolrav.podsavior.database.entity.Series
 
-@Database(entities = [Series::class, Episode::class, Progress::class], version = 2)
+@Database(entities = [Series::class, Episode::class, Progress::class], version = 1)
 abstract class PodDatabase : RoomDatabase() {
     abstract val seriesDao: SeriesDao
     abstract val episodeDao: EpisodeDao

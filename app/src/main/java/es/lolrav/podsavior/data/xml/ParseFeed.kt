@@ -186,7 +186,8 @@ class ParseFeed(
                             imageUri = imageUri,
                             duration = duration,
                             seriesUid = series.uid,
-                            publishTime = publishTime))
+                            publishTime = publishTime,
+                            onDiskPath = null))
         } else {
             Log.w(TAG, "Did not find enough fields for item \"$name\"")
         }

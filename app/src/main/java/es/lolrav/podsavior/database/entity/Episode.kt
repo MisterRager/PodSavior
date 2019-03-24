@@ -18,6 +18,7 @@ data class Episode(
         val description: String?,
         val descriptionMarkup: String?,
         val episodeUri: String,
+        val onDiskPath: String?,
         val imageUri: String?,
         val duration: Duration,
         val publishTime: Instant

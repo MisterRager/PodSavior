@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "8c08624430cffd313abb3521e9e80dfe",
+    "identityHash": "9e9efa9135761f8bdcd0fe4283bef806",
     "entities": [
       {
         "tableName": "Series",
@@ -68,7 +68,7 @@
       },
       {
         "tableName": "episode",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `seriesUid` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `descriptionMarkup` TEXT, `episodeUri` TEXT NOT NULL, `imageUri` TEXT, `duration` INTEGER NOT NULL, `publishTime` INTEGER NOT NULL, PRIMARY KEY(`uid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `seriesUid` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `descriptionMarkup` TEXT, `episodeUri` TEXT NOT NULL, `onDiskPath` TEXT, `imageUri` TEXT, `duration` INTEGER NOT NULL, `publishTime` INTEGER NOT NULL, PRIMARY KEY(`uid`))",
         "fields": [
           {
             "fieldPath": "uid",
@@ -107,6 +107,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "onDiskPath",
+            "columnName": "onDiskPath",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
             "fieldPath": "imageUri",
             "columnName": "imageUri",
             "affinity": "TEXT",
@@ -133,12 +139,44 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "progress",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`episodeUid` TEXT NOT NULL, `duration` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, PRIMARY KEY(`episodeUid`))",
+        "fields": [
+          {
+            "fieldPath": "episodeUid",
+            "columnName": "episodeUid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "duration",
+            "columnName": "duration",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "episodeUid"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"8c08624430cffd313abb3521e9e80dfe\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"9e9efa9135761f8bdcd0fe4283bef806\")"
     ]
   }
 }

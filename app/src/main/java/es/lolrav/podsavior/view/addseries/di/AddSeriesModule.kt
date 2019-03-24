@@ -45,27 +45,6 @@ object AddSeriesModule {
     }
 
     @[JvmStatic Provides Reusable]
-    fun providesMatchAndMerge(merger: MergeSeries): MatchAndMerge<Series> = merger
-
-    @[JvmStatic Provides Reusable]
-    fun providesSerialInsertItem(merger: MatchAndMerge<Series>): SerialInsertItem<Series> =
-            SerialInsertItem(merger)
-
-    @[JvmStatic Provides Reusable]
-    fun providesInsertItem(insertion: SerialInsertItem<Series>): OverlayInsertItem<Series> =
-            insertion
-
-    @[JvmStatic Provides Reusable]
-    fun providesInsertionOverlayProcessor(
-            insertion: OverlayInsertItem<Series>
-    ): InsertionOverlayProcessor<Series> = InsertionOverlayProcessor(insertion)
-
-    @[JvmStatic Provides Reusable]
-    fun providesOverlayProcessor(
-            insertionProcessor: InsertionOverlayProcessor<Series>
-    ): OverlayProcessor<Series> = insertionProcessor
-
-    @[JvmStatic Provides Reusable]
     fun providesCompositeSeriesSource(
             sources: Set<@JvmSuppressWildcards ItemSource<Series>>,
             overlayProcessor: OverlayProcessor<Series>,

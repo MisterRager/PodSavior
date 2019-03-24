@@ -14,7 +14,6 @@ import org.threeten.bp.Instant
 import org.threeten.bp.MonthDay
 import org.threeten.bp.ZoneId
 import org.threeten.bp.format.TextStyle
-import org.threeten.bp.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
@@ -40,16 +39,21 @@ constructor(
     override fun onBindViewHolder(holder: BasicViewHolder<EpisodeRow>, position: Int) {
         episodesLock.withLock {
             episodes.getOrNull(position)?.also { episode ->
-                episode.imageUri
-                        ?.takeIf(String::isNotBlank)
-                        ?.let(picasso::load)
-                        ?.into(holder.heldView.episodeIcon)
-                holder.heldView.title.text = episode.name
-                holder.heldView.summary.text =
-                        episode.descriptionMarkup?.let(Html::fromHtml) ?: episode.description ?: ""
-                holder.heldView.duration.text = episode.duration.formatted
-                holder.heldView.date.text = episode.publishTime.formatted
+                holder.heldView.apply {
+                    episode.imageUri
+                            ?.takeIf(String::isNotBlank)
+                            ?.let(picasso::load)
+                            ?.into(episodeIcon)
 
+                    title.text = episode.name
+                    summary.text =
+                            episode.descriptionMarkup?.let(Html::fromHtml) ?: episode.description
+                                    ?: ""
+                    duration.text = episode.duration.formatted
+                    date.text = episode.publishTime.formatted
+
+                    subscribe.isChecked = episode.onDiskPath != null
+                }
             }
         }
     }
@@ -62,6 +66,8 @@ constructor(
             }
         }
     }
+
+    override fun getItemId(position: Int): Long = episodes[position].uid.hashCode().toLong()
 
     private val Instant.formatted: String
         get() = MonthDay.from(atZone(ZoneId.systemDefault()))

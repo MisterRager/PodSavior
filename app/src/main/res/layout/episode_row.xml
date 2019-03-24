@@ -66,8 +66,19 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/episode_subscribed_check"
         app:layout_constraintHorizontal_weight="1"
         app:layout_constraintStart_toEndOf="@id/episode_title"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <CheckBox
+        android:id="@+id/episode_subscribed_check"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:button="@drawable/add_status_selector"
+        android:clickable="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/episode_subscribed_status"
         app:layout_constraintTop_toTopOf="parent" />
 </merge>

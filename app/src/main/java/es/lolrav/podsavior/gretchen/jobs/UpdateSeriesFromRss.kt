@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.work.*
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.Lazy
+import es.lolrav.podsavior.data.OverlayInsertItem
 import es.lolrav.podsavior.data.rx.RxListenableFuture
 import es.lolrav.podsavior.data.xml.Or
 import es.lolrav.podsavior.data.xml.ParseFeed
@@ -40,6 +41,10 @@ class UpdateSeriesFromRss(
     lateinit var okHttp: Lazy<OkHttpClient>
     @Inject
     lateinit var parser: XmlPullParser
+    @Inject
+    lateinit var overlaySeries: OverlayInsertItem<Series>
+    @Inject
+    lateinit var overlayEpisode: OverlayInsertItem<Episode>
 
     override fun startWork(): ListenableFuture<Result> {
         // Make sure DI is done
@@ -57,12 +62,11 @@ class UpdateSeriesFromRss(
                             .map { body -> body.source().inputStream() }
                             .retry(5)
                             .map(ParseFeed(parser, fetchSeries)::parse)
-                            .flatMapCompletable { seriesOrEpisodes ->
-                                val (seriesList, episodeList) = seriesOrEpisodes.toLists()
-
+                            .map(this::toLists)
+                            .flatMapCompletable { (seriesList, episodeList) ->
                                 Completable.mergeArray(
-                                        seriesDao.save(*seriesList.toTypedArray()),
-                                        episodeDao.save(*episodeList.toTypedArray()))
+                                        saveSeriesList(fetchSeries, seriesList),
+                                        saveEpisodeList(fetchSeries.uid, episodeList))
                             }
                 }
                 .toSingleDefault(ListenableWorker.Result.success())
@@ -70,10 +74,28 @@ class UpdateSeriesFromRss(
                 .let(::RxListenableFuture)
     }
 
-    private fun Sequence<Or<Series, Episode>>.toLists(): Pair<List<Series>, List<Episode>> =
+    private fun saveSeriesList(fetchSeries: Series, seriesList: List<Series>): Completable =
+            seriesList
+                    .fold(listOf(fetchSeries), overlaySeries::insert)
+                    .let(List<Series>::toTypedArray)
+                    .let(seriesDao::save)
+
+    private fun saveEpisodeList(seriesUid: String, episodeList: List<Episode>): Completable =
+            episodeDao
+                    .getBySeries(seriesUid)
+                    .firstElement()
+                    .toSingle(listOf())
+                    .flatMapCompletable { savedEpisodes ->
+                        episodeList
+                                .fold(savedEpisodes, overlayEpisode::insert)
+                                .let(List<Episode>::toTypedArray)
+                                .let(episodeDao::save)
+                    }
+
+    private fun toLists(seq: Sequence<Or<Series, Episode>>): Pair<List<Series>, List<Episode>> =
             (mutableListOf<Series>() to mutableListOf<Episode>()).let { updateResults ->
                 try {
-                    fold(updateResults) { results, (series, episode) ->
+                    seq.fold(updateResults) { results, (series, episode) ->
                         series?.let(results.first::add)
                         episode?.let(results.second::add)
                         results
@@ -85,15 +107,6 @@ class UpdateSeriesFromRss(
                     updateResults
                 }
             }
-
-    private fun saveSeriesOrEpisode(or: Or<Series, Episode>) {
-        val (series, episode) = or
-
-        when {
-            series != null -> seriesDao.save(series)
-            episode != null -> episodeDao.save(episode)
-        }
-    }
 
     private fun fetchFeed(request: Request): Single<Pair<Call, Response>> =
             Single.using<Pair<Call, Response>, Call>(

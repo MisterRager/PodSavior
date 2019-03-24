@@ -4,10 +4,7 @@ import android.app.Application
 import dagger.BindsInstance
 import dagger.Component
 import es.lolrav.podsavior.data.time.TimeParsingModule
-import es.lolrav.podsavior.di.module.AppModule
-import es.lolrav.podsavior.di.module.NetModule
-import es.lolrav.podsavior.di.module.RoomModule
-import es.lolrav.podsavior.di.module.XmlParserModule
+import es.lolrav.podsavior.di.module.*
 import es.lolrav.podsavior.gretchen.FetchFeed
 import es.lolrav.podsavior.gretchen.jobs.UpdateSeriesFromRss
 import es.lolrav.podsavior.view.addseries.di.AddSeriesComponent
@@ -19,6 +16,7 @@ import javax.inject.Singleton
 @Singleton
 @Component(modules = [
     AppModule::class,
+    DataProcessingModule::class,
     RoomModule::class,
     NetModule::class,
     XmlParserModule::class,
