@@ -83,7 +83,6 @@ class ParseFeed(
                             null to "item" -> {
                                 // Dump the series data into the stream
                                 if (hasStartedItems.compareAndSet(false, true)) {
-                                    Log.v(TAG, "Yield Updated Series [$title]!")
                                     yield(
                                             Series(
                                                     uid = series.uid,
@@ -175,7 +174,7 @@ class ParseFeed(
         }
 
         if (name != null && audioUri != null && duration != null && publishTime != null) {
-            Log.v(TAG, "Yield Updated Episode [$name]!")
+            Log.v(TAG, "Yield Updated Episode [$name: ${audioUri}]!")
             yield(
                     null to Episode(
                             uid = audioUri,

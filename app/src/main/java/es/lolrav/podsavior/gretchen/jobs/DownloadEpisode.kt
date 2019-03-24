@@ -1,6 +1,7 @@
 package es.lolrav.podsavior.gretchen.jobs
 
 import android.content.Context
+import android.util.Base64
 import android.util.Log
 import androidx.work.*
 import com.google.common.util.concurrent.ListenableFuture
@@ -18,6 +19,8 @@ import java.io.IOException
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
+
+private val TAG = DownloadEpisode::class.java.simpleName
 
 class DownloadEpisode(
         appContext: Context,
@@ -48,19 +51,15 @@ class DownloadEpisode(
     }
 
     private val episodeStream: Flowable<Episode> by lazy {
-        episodeDao.getListByUid(*episodeUids)
+        episodeDao.getListByUid(*(episodeUids.distinct().toTypedArray()))
                 .take(1)
                 .flatMapIterable { it }
     }
 
     private val episodeDownloads: Completable by lazy {
-        episodeStream.flatMapCompletable(this::downloadEpisode)
-                .doOnError {
-                    Log.w(
-                            DownloadEpisode::class.java.simpleName,
-                            "Error Downloading Episode!!",
-                            it)
-                }
+        episodeStream
+                .flatMapCompletable(this::downloadEpisode)
+                .doOnError { Log.w(TAG, "Error Downloading Episode!!", it) }
     }
 
     private fun downloadEpisode(episode: Episode): Completable =
@@ -85,30 +84,49 @@ class DownloadEpisode(
                                         }
                                     })
                                 }
-                                .flatMapCompletable { response ->
-                                    episode.onDiskFile.let { file ->
-                                        Completable.mergeArray(
-                                                Completable.fromAction {
-                                                    response.body()
-                                                            ?.source()
-                                                            ?.let(Okio.buffer(
-                                                                    Okio.sink(file))::writeAll)
-                                                },
-                                                episodeDao.getByUid(episode.uid)
-                                                        .firstElement()
-                                                        .flatMapCompletable { updateEpisode ->
-                                                            episodeDao.save(
-                                                                    updateEpisode.copy(file.path))
-                                                        })
-                                    }
-                                }
+                                .flatMapCompletable { res -> atomicFileDownload(episode, res) }
                     },
                     Call::cancel)
 
+    private fun atomicFileDownload(
+            episode: Episode,
+            response: Response
+    ): Completable =
+            episode.onDiskFile.let { target ->
+                episodeDao
+                        .updateFilePathIfBlank(episode.uid, target.absolutePath)
+                        .filter { it > 0 }
+                        .flatMapCompletable {
+                            streamFile(
+                                    response,
+                                    target
+                                            .apply { Log.v(TAG, "Downloading to $canonicalPath") }
+                                            .apply { parentFile.mkdirs() }
+                                            .apply { createNewFile() }
+                            )
+                        }
+            }
+
+
+    private fun streamFile(response: Response, target: File): Completable =
+            Completable
+                    .fromAction {
+                        Log.v(TAG, "Downloading (${response.request().url()}) to (${target.path})")
+                        response.body()?.source()?.let(Okio.buffer(Okio.sink(target))::writeAll)
+                    }
+
     private val Episode.onDiskFile: File
-        get() = onDiskPath?.let(::File) ?: applicationContext.filesDir
-                .resolve("/$seriesUid/$uid/${UUID.randomUUID()}")
-                .apply { parentFile.mkdirs() }
+        get() =
+            when {
+                onDiskPath != null -> File(onDiskPath)
+                else -> File(
+                        applicationContext.filesDir,
+                        "/${seriesUid.hashify()}/${uid.hashify()}/${UUID.randomUUID()}")
+            }
+
+    private fun String.hashify(): String =
+            Base64.encodeToString(this.toByteArray(), Base64.DEFAULT)
+                    .let { str -> str.substring(0, Math.min(str.length, 20)) }
 
     class MergeInput : InputMerger() {
         override fun merge(inputs: MutableList<Data>): Data =
