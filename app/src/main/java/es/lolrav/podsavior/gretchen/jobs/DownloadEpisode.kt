@@ -112,7 +112,10 @@ class DownloadEpisode(
             Completable
                     .fromAction {
                         Log.v(TAG, "Downloading (${response.request().url()}) to (${target.path})")
-                        response.body()?.source()?.let(Okio.buffer(Okio.sink(target))::writeAll)
+                        response.body()?.let {
+                            it.source().let(Okio.buffer(Okio.sink(target))::writeAll)
+                            it.close()
+                        }
                     }
 
     private val Episode.onDiskFile: File
